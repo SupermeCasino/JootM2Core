@@ -76,51 +76,33 @@ final class WIS implements ImageLibrary {
 		if(!f_wis.canRead()) return;
     	try {
     		br_wis = new BinaryReader(f_wis);
-    		// 从文件末尾开始读取图片数据描述信息
-    		// 一组描述信息包括12个字节(3个int值)，依次为图片数据起始位置(相对于文件)、图片数据大小(包括基本信息)、保留
-    		// 使用两个List保存offsetList和lengthList
-    		List<Integer> offsets = new ArrayList<Integer>();
-    		List<Integer> lengths = new ArrayList<Integer>();
-    		int readPosition = (int) (br_wis.length() - 12);
-    		int currentOffset = 0;
-    		int currentLength = 0;
-    		do {
-    			br_wis.seek(readPosition);
-    			readPosition -= 12;
-    			
-    			currentOffset = br_wis.readIntLE();
-    			currentLength = br_wis.readIntLE();
-    			
-    			offsets.add(currentOffset);
-    			lengths.add(currentLength);
-    		} while(currentOffset > 512);
-    		Collections.reverse(offsets);
-    		Collections.reverse(lengths);
-    		offsetList = new int[offsets.size()];
-    		for(int i = 0; i < offsetList.length; ++i)
-    			offsetList[i] = offsets.get(i);
-    		lengthList = new int[lengths.size()];
-    		for(int i = 0; i < lengthList.length; ++i)
-    			lengthList[i] = lengths.get(i);
-    		imageCount = offsetList.length;
-    		// 读取图片信息
-    		imageInfos = new ImageInfo[imageCount];
-    		for(int i = 0; i < imageCount; ++i) {
-				int offset = offsetList[i];
-				if(offset + 12 > br_wis.length()) {
-					// 数据出错，直接赋值为空图片
+			br_wis.seek(br_wis.length() - 12);
+			int lastImageOff = br_wis.readIntLE();
+			int lastImageLen = br_wis.readIntLE();
+			imageCount = (int) ((br_wis.length() - lastImageOff - lastImageLen) / 12);
+			imageInfos = new ImageInfo[imageCount];
+			offsetList = new int[imageCount];
+			lengthList = new int[imageCount];
+			br_wis.seek(lastImageOff + lastImageLen);
+			for(int i = 0; i < imageCount; ++i) {
+				offsetList[i] = br_wis.readIntLE();
+				lengthList[i] = br_wis.readIntLE();
+				if(lengthList[i] == 13) {
 					imageInfos[i] = ImageInfo.EMPTY;
-            		continue;
 				}
-    			ImageInfo ii = new ImageInfo();
-    			br_wis.seek(offsetList[i] + 4);
-    			ii.setWidth((short)br_wis.readUnsignedShortLE());
-				ii.setHeight((short)br_wis.readUnsignedShortLE());
+				br_wis.skipBytes(4);
+			}
+			for(int i = 0; i < imageCount; ++i) {
+				if(imageInfos[i] != null) continue;
+				ImageInfo ii = new ImageInfo();
+				br_wis.seek(offsetList[i] + 4);
+				ii.setWidth(br_wis.readShortLE());
+				ii.setHeight(br_wis.readShortLE());
 				ii.setOffsetX(br_wis.readShortLE());
 				ii.setOffsetY(br_wis.readShortLE());
-                imageInfos[i] = ii;
-    		}
-            loaded = true;
+				imageInfos[i] = ii;
+			}
+			loaded = true;
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new RuntimeException(e);
@@ -145,7 +127,7 @@ final class WIS implements ImageLibrary {
 		// 00 XX YY ZZ ... 表示从YY开始XX个字节是未被压缩的，直接复制出来即可
 		while(srcLength > 0 && unpackLength > 0) {
 			int length = packed[srcIndex++]; // 取出第一个标志位
-			int value = packed[srcIndex++]; // 取出第二个标志位
+			int value = packed[srcIndex++] & 0xff; // 取出第二个标志位
 			srcLength -= 2;
 			/*if(value == 0 && length == 0) {
 				// 脏数据
@@ -192,10 +174,6 @@ final class WIS implements ImageLibrary {
     		ImageInfo ii = imageInfos[index];
     		int offset = offsetList[index];
     		int length = lengthList[index];
-    		/*if(length < 14) {
-    			// 如果是空白图片
-    			return Texture.EMPTY;
-    		}*/
     		byte[] imageBytes = new byte[ii.getWidth() * ii.getHeight()];
     		byte[] packed = null;
     		byte encry = 0;
