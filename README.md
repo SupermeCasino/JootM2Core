@@ -11,4 +11,6 @@
 
 ![TMX预览效果](https://github.com/jootnet/mir2.core/raw/master/src/test/java/mir2/core/tmx.gif)
 
-讨论Q群：35142661
+这个项目暂不更新了，后续有优化的部分会放到另一个项目JootM2Client中。
+
+讨论Q群：976761308
