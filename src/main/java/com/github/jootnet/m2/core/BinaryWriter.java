@@ -14,7 +14,7 @@
  * 
  * Support: https://github.com/jootnet/mir2.core
  */
-package com.github.jootnet.mir2.core;
+package com.github.jootnet.m2.core;
 
 import java.io.File;
 import java.io.FileNotFoundException;

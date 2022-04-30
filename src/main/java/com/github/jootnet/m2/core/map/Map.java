@@ -14,7 +14,7 @@
  * 
  * Support: https://github.com/jootnet/mir2.core
  */
-package com.github.jootnet.mir2.core.map;
+package com.github.jootnet.m2.core.map;
 
 /**
  * 热血传奇2地图

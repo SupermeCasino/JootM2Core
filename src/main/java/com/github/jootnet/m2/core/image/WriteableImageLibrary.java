@@ -14,7 +14,7 @@
  * 
  * Support: https://github.com/jootnet/mir2.core
  */
-package com.github.jootnet.mir2.core.image;
+package com.github.jootnet.m2.core.image;
 
 /**
  * 可写图片库接口<br>

@@ -14,11 +14,11 @@
  * 
  * Support: https://github.com/jootnet/mir2.core
  */
-package com.github.jootnet.mir2.core.image;
+package com.github.jootnet.m2.core.image;
 
 import java.io.Closeable;
 
-import com.github.jootnet.mir2.core.Texture;
+import com.github.jootnet.m2.core.Texture;
 
 /**
  * 图片库通用接口

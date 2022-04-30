@@ -14,7 +14,7 @@
  * 
  * Support: https://github.com/jootnet/mir2.core
  */
-package com.github.jootnet.mir2.core.image;
+package com.github.jootnet.m2.core.image;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -24,9 +24,9 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.zip.InflaterInputStream;
 
-import com.github.jootnet.mir2.core.BinaryReader;
-import com.github.jootnet.mir2.core.SDK;
-import com.github.jootnet.mir2.core.Texture;
+import com.github.jootnet.m2.core.BinaryReader;
+import com.github.jootnet.m2.core.SDK;
+import com.github.jootnet.m2.core.Texture;
 
 /**
  * 热血传奇2WZL图片库
@@ -73,11 +73,11 @@ final class WZL implements ImageLibrary {
     
     WZL(String wzlPath) {
     	String wzxPath = SDK.changeFileExtension(wzlPath, "wzx");
-		File f_wzx = new File(wzxPath);
+		File f_wzx = new File(SDK.repairFileName(wzxPath));
 		if(!f_wzx.exists()) return;
 		if(!f_wzx.isFile()) return;
 		if(!f_wzx.canRead()) return;
-		File f_wzl = new File(wzlPath);
+		File f_wzl = new File(SDK.repairFileName(wzlPath));
 		if(!f_wzl.exists()) return;
 		if(!f_wzl.isFile()) return;
 		if(!f_wzl.canRead()) return;
@@ -174,7 +174,7 @@ final class WZL implements ImageLibrary {
 			}
     		if(ii.wzlCompressed)
     			pixels = unzip(pixels);
-    		byte[] sRGB = new byte[ii.getWidth() * ii.getHeight() * 3];
+    		byte[] sRGBA = new byte[ii.getWidth() * ii.getHeight() * 4];
     		if (ii.getColorBit() == 8) {
                 int p_index = 0;
                 for (int h = ii.getHeight() - 1; h >= 0; --h)
@@ -183,10 +183,11 @@ final class WZL implements ImageLibrary {
                         if (w == 0)
                             p_index += SDK.skipBytes(8, ii.getWidth());
                         byte[] pallete = SDK.palletes[pixels[p_index++] & 0xff];
-    					int _idx = (w + h * ii.getWidth()) * 3;
-    					sRGB[_idx] = pallete[1];
-    					sRGB[_idx + 1] = pallete[2];
-    					sRGB[_idx + 2] = pallete[3];
+    					int _idx = (w + h * ii.getWidth()) * 4;
+    					sRGBA[_idx] = pallete[1];
+    					sRGBA[_idx + 1] = pallete[2];
+    					sRGBA[_idx + 2] = pallete[3];
+						sRGBA[_idx + 3] = pallete[0];
                     }
             }
 	    	else if (ii.getColorBit() == 16) {
@@ -202,13 +203,18 @@ final class WZL implements ImageLibrary {
                         byte r = (byte) ((pdata & 0xf800) >> 8);// 由于是与16位做与操作，所以多出了后面8位
                         byte g = (byte) ((pdata & 0x7e0) >> 3);// 多出了3位，在强转时前8位会自动丢失
                         byte b = (byte) ((pdata & 0x1f) << 3);// 少了3位
-    					int _idx = (w + h * ii.getWidth()) * 3;
-    					sRGB[_idx] = r;
-    					sRGB[_idx + 1] = g;
-    					sRGB[_idx + 2] = b;
+    					int _idx = (w + h * ii.getWidth()) * 4;
+    					sRGBA[_idx] = r;
+    					sRGBA[_idx + 1] = g;
+    					sRGBA[_idx + 2] = b;
+    					if (r == 0 && g == 0 && b == 0) {
+    						sRGBA[_idx + 3] = 0;
+    					} else {
+    						sRGBA[_idx + 3] = -1;
+    					}
                     }
             }
-	    	return new Texture(sRGB, ii.getWidth(), ii.getHeight());
+	    	return new Texture(sRGBA, ii.getWidth(), ii.getHeight());
     	} catch(Exception ex) {
     		ex.printStackTrace();
     		return Texture.EMPTY;

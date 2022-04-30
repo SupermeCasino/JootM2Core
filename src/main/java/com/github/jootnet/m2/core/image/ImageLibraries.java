@@ -14,12 +14,12 @@
  * 
  * Support: https://github.com/jootnet/mir2.core
  */
-package com.github.jootnet.mir2.core.image;
+package com.github.jootnet.m2.core.image;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import com.github.jootnet.mir2.core.SDK;
+import com.github.jootnet.m2.core.SDK;
 
 /**
  * 图片库管理工具类

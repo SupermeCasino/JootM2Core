@@ -14,7 +14,7 @@
  * 
  * Support: https://github.com/jootnet/mir2.core
  */
-package com.github.jootnet.mir2.core.image;
+package com.github.jootnet.m2.core.image;
 
 /**
  * 热血传奇2图片信息
@@ -30,7 +30,7 @@ public final class ImageInfo {
 	private int width;
 	private int height;
 	private short offsetX;
-	private short offsetY;	
+	private short offsetY;
 	private byte colorBit = 8;
 	boolean wzlCompressed = true;
 	
