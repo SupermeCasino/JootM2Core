@@ -38,16 +38,16 @@ public final class Messages {
 		case HUM_ACTION_CHANGE: {
 			var humActionChange = (HumActionChange) message;
 			// 1.人物姓名
-			byte[] nameBytes = humActionChange.name().getBytes(StandardCharsets.UTF_8);
+			byte[] nameBytes = humActionChange.name.getBytes(StandardCharsets.UTF_8);
 			buffer.writeByte((byte) nameBytes.length);
 			buffer.write(nameBytes);
 			// 2.当前坐标以及动作完成后的坐标
-			buffer.writeShort((short) humActionChange.x());
-			buffer.writeShort((short) humActionChange.y());
-			buffer.writeShort((short) humActionChange.nextX());
-			buffer.writeShort((short) humActionChange.nextY());
+			buffer.writeShort((short) humActionChange.x);
+			buffer.writeShort((short) humActionChange.y);
+			buffer.writeShort((short) humActionChange.nextX);
+			buffer.writeShort((short) humActionChange.nextY);
 			// 3.动作
-			pack(humActionChange.action(), buffer);
+			pack(humActionChange.action, buffer);
 			break;
 		}
 		
@@ -61,6 +61,35 @@ public final class Messages {
 			byte[] pswBytes = loginReq.psw().getBytes(StandardCharsets.UTF_8);
 			buffer.writeByte((byte) pswBytes.length);
 			buffer.write(pswBytes);
+			break;
+		}
+		
+		case LOGIN_RESP: {
+			var loginResp = (LoginResp) message;
+			// 1.错误码
+			buffer.writeInt(loginResp.code());
+			// 2.服务端消息
+			if (loginResp.serverTip() != null) {
+				byte[] tipBytes = loginResp.serverTip().getBytes(StandardCharsets.UTF_8);
+				buffer.writeByte((byte) tipBytes.length);
+				buffer.write(tipBytes);
+			} else {
+				buffer.writeByte(0);
+			}
+			// 3.角色列表
+			if (loginResp.roles() != null) {
+				buffer.writeByte((byte) loginResp.roles().length);
+				for (var r : loginResp.roles()) {
+					buffer.writeInt(r.type);
+					buffer.writeInt(r.level);
+					buffer.writeInt(r.status);
+					byte[] nameBytes = r.name.getBytes(StandardCharsets.UTF_8);
+					buffer.writeByte((byte) nameBytes.length);
+					buffer.write(nameBytes);
+				}
+			} else {
+				buffer.writeByte(0);
+			}
 			break;
 		}
 		
@@ -106,6 +135,16 @@ public final class Messages {
 			var humActionInfo = new HumActionInfo();
 			unpack(humActionInfo, buffer);
 			return new HumActionChange(new String(nameBytes, StandardCharsets.UTF_8), x, y, nx, ny, humActionInfo);
+		}
+		
+		case LOGIN_REQ: {
+			byte unaBytesLen = buffer.get();
+			byte[] unaBytes = new byte[unaBytesLen];
+			buffer.get(unaBytes);
+			byte pswBytesLen = buffer.get();
+			byte[] pswBytes = new byte[pswBytesLen];
+			buffer.get(pswBytes);
+			return new LoginReq(new String(unaBytes, StandardCharsets.UTF_8), new String(pswBytes, StandardCharsets.UTF_8));
 		}
 		
 		case LOGIN_RESP: {
