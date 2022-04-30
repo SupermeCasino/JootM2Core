@@ -9,10 +9,13 @@
 
     <name>JootM2Core</name>
     <description>mir2 core lib</description>
-    <url>https://jitpack.io/#jootnet/m2.core/3.1</url>
+    <url>https://jitpack.io/#jootnet/JootM2Core</url>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <java.version>11</java.version>
+        <maven.compiler.source>${java.version}</maven.compiler.source>
+    	<maven.compiler.target>${java.version}</maven.compiler.target>
     </properties>
     <issueManagement>
         <system>Github Issue</system>
@@ -37,7 +40,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
-                <version>3.0.1</version>
+                <version>3.2.1</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -50,7 +53,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.10.4</version>
+                <version>3.4.0</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
