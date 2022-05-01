@@ -109,11 +109,10 @@ public final class Messages {
 	/**
 	 * 解析数据包
 	 * 
-	 * @param bytes 数据
+	 * @param buffer 数据
 	 * @return 解析的数据包或null
 	 */
-	public static Message unpack(byte[] bytes) {
-		var buffer = ByteBuffer.wrap(bytes);
+	public static Message unpack(ByteBuffer buffer) {
 		MessageType type = null;
 		
 		var typeId = buffer.getInt();
@@ -129,7 +128,7 @@ public final class Messages {
 		switch (type) {
 		
 		case HUM_ACTION_CHANGE: {
-			String name = unpack(buffer);
+			String name = unpackString(buffer);
 			var x = buffer.getShort();
 			var y = buffer.getShort();
 			var nx = buffer.getShort();
@@ -140,35 +139,35 @@ public final class Messages {
 		}
 		
 		case LOGIN_REQ: {
-			String una = unpack(buffer);
-			String psw = unpack(buffer);
+			String una = unpackString(buffer);
+			String psw = unpackString(buffer);
 			return new LoginReq(una, psw);
 		}
 		
 		case LOGIN_RESP: {
 			var code = buffer.getInt();
-			String serverTip = unpack(buffer);
+			String serverTip = unpackString(buffer);
 			int roleCount = buffer.get();
 			var roles = new LoginResp.Role[roleCount];
 			for (var i = 0; i < roleCount; ++i) {
 				roles[i] = new LoginResp.Role();
 				roles[i].type = buffer.getInt();
 				roles[i].level = buffer.getInt();
-				roles[i].name = unpack(buffer);
-				roles[i].mapNo = unpack(buffer);
+				roles[i].name = unpackString(buffer);
+				roles[i].mapNo = unpackString(buffer);
 				roles[i].x = buffer.getShort();
 				roles[i].y = buffer.getShort();
 			}
-			String lastName = unpack(buffer);
+			String lastName = unpackString(buffer);
 			return new LoginResp(code, serverTip, roles, lastName);
 		}
 		
 		case ENTER_REQ: {
-			return new EnterReq(unpack(buffer));
+			return new EnterReq(unpackString(buffer));
 		}
 		
 		case ENTER_RESP: {
-			var forbidTip = unpack(buffer);
+			var forbidTip = unpackString(buffer);
 			if (forbidTip != null) {
 				return new EnterResp(forbidTip, null);
 			}
@@ -259,7 +258,7 @@ public final class Messages {
     	buffer.writeByte((byte) bytes.length);
     	buffer.write(bytes);
     }
-    private static String unpack(ByteBuffer buffer) {
+    private static String unpackString(ByteBuffer buffer) {
     	var bytesLen = buffer.get();
 		String str = null;
 		if (bytesLen > 0) {
@@ -314,7 +313,7 @@ public final class Messages {
     	buffer.writeInt(info.y);
     }
     private static ChrBasicInfo unpackChrBasicInfo(ByteBuffer buffer) {
-    	var name = unpack(buffer);
+    	var name = unpackString(buffer);
     	var oi = buffer.getInt();
     	Occupation occ = null;
     	for (var item : Occupation.values()) {
@@ -334,7 +333,7 @@ public final class Messages {
     	var weaponIdx = buffer.getInt();
     	var weaponEffectFileIdx = buffer.getInt();
     	var weaponEffectIdx = buffer.getInt();
-    	var mapNo = unpack(buffer);
+    	var mapNo = unpackString(buffer);
     	var x = buffer.getInt();
     	var y = buffer.getInt();
     	var ret = new ChrBasicInfo(name, occ, level, hp, mp, mapNo, x, y);
