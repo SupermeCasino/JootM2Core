@@ -17,7 +17,11 @@ public enum MessageType {
 	/**
 	 * 登陆结果
 	 */
-	LOGIN_RESP(1003);
+	LOGIN_RESP(1003),
+	/** 进入游戏世界 */
+	ENTER_REQ(1004),
+	/** 进入游戏世界结果 */
+	ENTER_RESP(1005);
 
     private int id_;
     private MessageType(int id) {

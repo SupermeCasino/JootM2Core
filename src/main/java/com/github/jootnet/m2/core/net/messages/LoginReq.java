@@ -16,20 +16,12 @@ public final class LoginReq implements Message {
 		return MessageType.LOGIN_REQ;
 	}
 	
-	private String una;
-	private String psw;
+	public String una;
+	public String psw;
 	
 	public LoginReq(String una, String psw) {
 		this.una = una;
 		this.psw = psw;
-	}
-	
-	public String una() {
-		return this.una;
-	}
-	
-	public String psw() {
-		return this.psw;
 	}
 
 }

@@ -10,7 +10,10 @@ import java.nio.charset.StandardCharsets;
 import com.github.jootnet.m2.core.actor.Action;
 import com.github.jootnet.m2.core.actor.Direction;
 import com.github.jootnet.m2.core.actor.HumActionInfo;
-import com.github.jootnet.m2.core.actor.RoleBasicInfo;
+import com.github.jootnet.m2.core.actor.Occupation;
+import com.github.jootnet.m2.core.actor.ChrBasicInfo;
+import com.github.jootnet.m2.core.net.messages.EnterReq;
+import com.github.jootnet.m2.core.net.messages.EnterResp;
 import com.github.jootnet.m2.core.net.messages.HumActionChange;
 import com.github.jootnet.m2.core.net.messages.LoginReq;
 import com.github.jootnet.m2.core.net.messages.LoginResp;
@@ -38,9 +41,7 @@ public final class Messages {
 		case HUM_ACTION_CHANGE: {
 			var humActionChange = (HumActionChange) message;
 			// 1.人物姓名
-			byte[] nameBytes = humActionChange.name.getBytes(StandardCharsets.UTF_8);
-			buffer.writeByte((byte) nameBytes.length);
-			buffer.write(nameBytes);
+			pack(humActionChange.name, buffer);
 			// 2.当前坐标以及动作完成后的坐标
 			buffer.writeShort((short) humActionChange.x);
 			buffer.writeShort((short) humActionChange.y);
@@ -54,42 +55,45 @@ public final class Messages {
 		case LOGIN_REQ: {
 			var loginReq = (LoginReq) message;
 			// 1.用户名
-			byte[] unaBytes = loginReq.una().getBytes(StandardCharsets.UTF_8);
-			buffer.writeByte((byte) unaBytes.length);
-			buffer.write(unaBytes);
+			pack(loginReq.una, buffer);
 			// 2.密码
-			byte[] pswBytes = loginReq.psw().getBytes(StandardCharsets.UTF_8);
-			buffer.writeByte((byte) pswBytes.length);
-			buffer.write(pswBytes);
+			pack(loginReq.psw, buffer);
 			break;
 		}
 		
 		case LOGIN_RESP: {
 			var loginResp = (LoginResp) message;
 			// 1.错误码
-			buffer.writeInt(loginResp.code());
+			buffer.writeInt(loginResp.code);
 			// 2.服务端消息
-			if (loginResp.serverTip() != null) {
-				byte[] tipBytes = loginResp.serverTip().getBytes(StandardCharsets.UTF_8);
-				buffer.writeByte((byte) tipBytes.length);
-				buffer.write(tipBytes);
-			} else {
-				buffer.writeByte(0);
-			}
+			pack(loginResp.serverTip, buffer);
 			// 3.角色列表
-			if (loginResp.roles() != null) {
-				buffer.writeByte((byte) loginResp.roles().length);
-				for (var r : loginResp.roles()) {
+			if (loginResp.roles != null) {
+				buffer.writeByte((byte) loginResp.roles.length);
+				for (var r : loginResp.roles) {
 					buffer.writeInt(r.type);
 					buffer.writeInt(r.level);
-					buffer.writeInt(r.status);
-					byte[] nameBytes = r.name.getBytes(StandardCharsets.UTF_8);
-					buffer.writeByte((byte) nameBytes.length);
-					buffer.write(nameBytes);
+					pack(r.name, buffer);
+					pack(r.mapNo, buffer);
+					buffer.writeShort(r.x);
+					buffer.writeShort(r.y);
 				}
 			} else {
 				buffer.writeByte(0);
 			}
+			// 4.上次选择的昵称
+			pack(loginResp.lastName, buffer);
+			break;
+		}
+		case ENTER_REQ: {
+			var enterReq = (EnterReq) message;
+			pack(enterReq.chrName, buffer);
+			break;
+		}
+		case ENTER_RESP: {
+			var enterResp = (EnterResp) message;
+			pack(enterResp.forbidTip, buffer);
+			pack(enterResp.cbi, buffer);
 			break;
 		}
 		
@@ -109,7 +113,7 @@ public final class Messages {
 	 * @return 解析的数据包或null
 	 */
 	public static Message unpack(byte[] bytes) {
-		ByteBuffer buffer = ByteBuffer.wrap(bytes);
+		var buffer = ByteBuffer.wrap(bytes);
 		MessageType type = null;
 		
 		var typeId = buffer.getInt();
@@ -125,50 +129,50 @@ public final class Messages {
 		switch (type) {
 		
 		case HUM_ACTION_CHANGE: {
-			var nameBytesLen = buffer.get();
-			var nameBytes = new byte[nameBytesLen];
-			buffer.get(nameBytes);
-			short x = buffer.getShort();
-			short y = buffer.getShort();
-			short nx = buffer.getShort();
-			short ny = buffer.getShort();
+			String name = unpack(buffer);
+			var x = buffer.getShort();
+			var y = buffer.getShort();
+			var nx = buffer.getShort();
+			var ny = buffer.getShort();
 			var humActionInfo = new HumActionInfo();
 			unpack(humActionInfo, buffer);
-			return new HumActionChange(new String(nameBytes, StandardCharsets.UTF_8), x, y, nx, ny, humActionInfo);
+			return new HumActionChange(name, x, y, nx, ny, humActionInfo);
 		}
 		
 		case LOGIN_REQ: {
-			byte unaBytesLen = buffer.get();
-			byte[] unaBytes = new byte[unaBytesLen];
-			buffer.get(unaBytes);
-			byte pswBytesLen = buffer.get();
-			byte[] pswBytes = new byte[pswBytesLen];
-			buffer.get(pswBytes);
-			return new LoginReq(new String(unaBytes, StandardCharsets.UTF_8), new String(pswBytes, StandardCharsets.UTF_8));
+			String una = unpack(buffer);
+			String psw = unpack(buffer);
+			return new LoginReq(una, psw);
 		}
 		
 		case LOGIN_RESP: {
 			var code = buffer.getInt();
-			var tipBytesLen = buffer.get();
-			String serverTip = null;
-			if (tipBytesLen > 0) {
-				byte[] tipBytes = new byte[tipBytesLen];
-				buffer.get(tipBytes);
-				serverTip = new String(tipBytes, StandardCharsets.UTF_8);
-			}
+			String serverTip = unpack(buffer);
 			int roleCount = buffer.get();
 			var roles = new LoginResp.Role[roleCount];
 			for (var i = 0; i < roleCount; ++i) {
 				roles[i] = new LoginResp.Role();
 				roles[i].type = buffer.getInt();
 				roles[i].level = buffer.getInt();
-				roles[i].status = buffer.getInt();
-				var nameBytesLen = buffer.get();
-				byte[] nameBytes = new byte[nameBytesLen];
-				buffer.get(nameBytes);
-				roles[i].name = new String(nameBytes, StandardCharsets.UTF_8);
+				roles[i].name = unpack(buffer);
+				roles[i].mapNo = unpack(buffer);
+				roles[i].x = buffer.getShort();
+				roles[i].y = buffer.getShort();
 			}
-			return new LoginResp(code, serverTip, roles);
+			String lastName = unpack(buffer);
+			return new LoginResp(code, serverTip, roles, lastName);
+		}
+		
+		case ENTER_REQ: {
+			return new EnterReq(unpack(buffer));
+		}
+		
+		case ENTER_RESP: {
+			var forbidTip = unpack(buffer);
+			if (forbidTip != null) {
+				return new EnterResp(forbidTip, null);
+			}
+			return new EnterResp(null, unpackChrBasicInfo(buffer));
 		}
 		
 		default:
@@ -184,7 +188,7 @@ public final class Messages {
      * @param hum 人物
      * @return 人物动作更新消息
      */
-    public static Message humActionChange(RoleBasicInfo hum) {
+    public static Message humActionChange(ChrBasicInfo hum) {
         var step = 1;
 		if (hum.action.act == Action.Run) step++;
         var nx = hum.x;
@@ -225,10 +229,46 @@ public final class Messages {
         return new HumActionChange(hum.name, hum.x, hum.y, nx, ny, hum.action);
     }
     
+    /**
+     * 为玩家登录创建数据封包
+     * 
+     * @param una 用户名
+     * @param psw 密码
+     * @return 数据封包
+     */
     public static Message loginReq(String una, String psw) {
     	return new LoginReq(una, psw);
     }
     
+    /**
+     * 为选择角色创建数据封包
+     * 
+     * @param chrName 角色昵称
+     * @return 数据封包
+     */
+    public static Message selectChr(String chrName) {
+    	return new EnterReq(chrName);
+    }
+    
+    private static void pack(String str, DataOutput buffer) throws IOException {
+    	if (str == null) {
+    		buffer.writeByte(0);
+    		return;
+    	}
+    	var bytes = str.getBytes(StandardCharsets.UTF_8);
+    	buffer.writeByte((byte) bytes.length);
+    	buffer.write(bytes);
+    }
+    private static String unpack(ByteBuffer buffer) {
+    	var bytesLen = buffer.get();
+		String str = null;
+		if (bytesLen > 0) {
+			var bytes = new byte[bytesLen];
+			buffer.get(bytes);
+			str = new String(bytes, StandardCharsets.UTF_8);
+		}
+		return str;
+    }
     private static void pack(HumActionInfo info, DataOutput buffer) throws IOException {
     	buffer.writeByte((byte) info.act.ordinal());
     	buffer.writeByte((byte) info.dir.ordinal());
@@ -254,5 +294,58 @@ public final class Messages {
     	info.frameIdx = buffer.getShort();
     	info.frameCount = buffer.getShort();
     	info.duration = buffer.getShort();
+    }
+    private static void pack(ChrBasicInfo info, DataOutput buffer) throws IOException {
+    	pack(info.name, buffer);
+    	buffer.writeInt(info.occupation.ordinal());
+    	buffer.writeInt(info.level);
+    	buffer.writeInt(info.hp);
+    	buffer.writeInt(info.mp);
+    	buffer.writeInt(info.humFileIdx);
+    	buffer.writeInt(info.humIdx);
+    	buffer.writeInt(info.humEffectFileIdx);
+    	buffer.writeInt(info.humEffectIdx);
+    	buffer.writeInt(info.weaponFileIdx);
+    	buffer.writeInt(info.weaponIdx);
+    	buffer.writeInt(info.weaponEffectFileIdx);
+    	buffer.writeInt(info.weaponEffectIdx);
+    	pack(info.mapNo, buffer);
+    	buffer.writeInt(info.x);
+    	buffer.writeInt(info.y);
+    }
+    private static ChrBasicInfo unpackChrBasicInfo(ByteBuffer buffer) {
+    	var name = unpack(buffer);
+    	var oi = buffer.getInt();
+    	Occupation occ = null;
+    	for (var item : Occupation.values()) {
+    		if (item.ordinal() == oi) {
+    			occ = item;
+    			break;
+    		}
+    	}
+    	var level = buffer.getInt();
+    	var hp = buffer.getInt();
+    	var mp = buffer.getInt();
+    	var humFileIdx = buffer.getInt();
+    	var humIdx = buffer.getInt();
+    	var humEffectFileIdx = buffer.getInt();
+    	var humEffectIdx = buffer.getInt();
+    	var weaponFileIdx = buffer.getInt();
+    	var weaponIdx = buffer.getInt();
+    	var weaponEffectFileIdx = buffer.getInt();
+    	var weaponEffectIdx = buffer.getInt();
+    	var mapNo = unpack(buffer);
+    	var x = buffer.getInt();
+    	var y = buffer.getInt();
+    	var ret = new ChrBasicInfo(name, occ, level, hp, mp, mapNo, x, y);
+    	ret.humFileIdx = humFileIdx;
+    	ret.humIdx = humIdx;
+    	ret.humEffectFileIdx = humEffectFileIdx;
+    	ret.humEffectIdx = humEffectIdx;
+    	ret.weaponFileIdx = weaponFileIdx;
+    	ret.weaponIdx = weaponIdx;
+    	ret.weaponEffectFileIdx = weaponEffectFileIdx;
+    	ret.weaponEffectIdx = weaponEffectIdx;
+    	return ret;
     }
 }

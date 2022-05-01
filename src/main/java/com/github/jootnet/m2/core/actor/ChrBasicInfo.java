@@ -6,7 +6,7 @@ import java.beans.PropertyChangeSupport;
 /**
  * 角色基础信息
  */
-public final class RoleBasicInfo {
+public final class ChrBasicInfo {
 
 	/** 昵称 */
 	public String name;
@@ -60,6 +60,23 @@ public final class RoleBasicInfo {
 	/** 动作完成后应该更新的地图坐标y */
 	public int nextY;
 
+	public ChrBasicInfo(String name, Occupation occupation, int level, int hp, int mp, String mapNo, int x, int y) {
+		this.name = name;
+		this.occupation = occupation;
+		this.level = level;
+		this.hp = hp;
+		this.mp = mp;
+		this.humIdx = 1;
+		this.mapNo = mapNo;
+		this.x = x;
+		this.y = y;
+		this.nextX = x;
+		this.nextY = y;
+		this.action = HumActionInfos.StandSouth;
+		this.actionStartTime = System.currentTimeMillis();
+		this.actionTick = 1;
+		this.actionFrameStartTime = this.actionStartTime;
+	}
 
 	private final PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
 	
@@ -77,7 +94,7 @@ public final class RoleBasicInfo {
 	 * @param y 身处地图纵坐标
 	 * @return 当前对象
 	 */
-	public RoleBasicInfo setPosition(int x, int y) {
+	public ChrBasicInfo setPosition(int x, int y) {
 		if (x != this.x)
 			propertyChangeSupport.firePropertyChange("x", this.x, x);
 		if (y != this.y)
@@ -95,7 +112,7 @@ public final class RoleBasicInfo {
 	 * @param action 玩家当前动作
 	 * @return 当前对象
 	 */
-	public RoleBasicInfo setAction(HumActionInfo action) {
+	public ChrBasicInfo setAction(HumActionInfo action) {
 		this.action = action;
 		actionTick = 1;
 		actionFrameStartTime = System.currentTimeMillis();
@@ -111,7 +128,7 @@ public final class RoleBasicInfo {
 	 * @param smooth 是否平滑移动
 	 * @return 当前对象
 	 */
-	public RoleBasicInfo act(boolean smooth) {
+	public ChrBasicInfo act(boolean smooth) {
 		// 计算当前动作
 		boolean actionDone = false;
 		var delta = System.currentTimeMillis() - actionStartTime;
