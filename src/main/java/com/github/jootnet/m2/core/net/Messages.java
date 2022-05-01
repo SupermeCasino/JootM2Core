@@ -72,6 +72,7 @@ public final class Messages {
 				buffer.writeByte((byte) loginResp.roles.length);
 				for (var r : loginResp.roles) {
 					buffer.writeInt(r.type);
+					buffer.writeByte(r.gender);
 					buffer.writeInt(r.level);
 					pack(r.name, buffer);
 					pack(r.mapNo, buffer);
@@ -152,6 +153,7 @@ public final class Messages {
 			for (var i = 0; i < roleCount; ++i) {
 				roles[i] = new LoginResp.Role();
 				roles[i].type = buffer.getInt();
+				roles[i].gender = buffer.get();
 				roles[i].level = buffer.getInt();
 				roles[i].name = unpackString(buffer);
 				roles[i].mapNo = unpackString(buffer);

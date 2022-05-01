@@ -10,6 +10,7 @@ public class LoginResp implements Message {
 	 */
 	public static class Role {
 		public int type; // 0:战士 1:法师 2:道士 3:刺客
+		public byte gender; // 0:男 1:女
 		public int level; // 等级 1-1000
 		public String name; // 昵称
 		public String mapNo; // 挂机地图
