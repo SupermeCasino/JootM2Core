@@ -295,6 +295,7 @@ public final class Messages {
     	info.duration = buffer.getShort();
     }
     private static void pack(ChrBasicInfo info, DataOutput buffer) throws IOException {
+    	if (info == null) return;
     	pack(info.name, buffer);
     	buffer.writeInt(info.occupation.ordinal());
     	buffer.writeInt(info.level);
