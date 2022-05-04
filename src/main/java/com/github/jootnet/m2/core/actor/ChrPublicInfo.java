@@ -12,22 +12,37 @@ public final class ChrPublicInfo {
 
 	/** 攻击力 */
 	public int attackPoint;
+	/** 攻击力上限 */
+	public int maxAttackPoint;
 	/** 魔法攻击力 */
 	public int magicAttackPoint;
+	/** 魔法攻击力上限 */
+	public int maxMagicAttackPoint;
 	/** 道术攻击力 */
 	public int taositAttackPoint;
+	/** 道术攻击力上限 */
+	public int maxTaositAttackPoint;
 	/** 防御力 */
 	public int defensePoint;
+	/** 防御力上限 */
+	public int maxDefensePoint;
 	/** 魔法防御力 */
 	public int magicDefensePoint;
+	/** 魔法防御力上限 */
+	public int maxMagicDefensePoint;
 	
-	public ChrPublicInfo(int attackPoint, int magicAttackPoint, int taositAttackPoint, int defensePoint,
-			int magicDefensePoint) {
+	public ChrPublicInfo(int attackPoint, int maxAttackPoint, int magicAttackPoint, int maxMagicAttackPoint,
+			int taositAttackPoint, int maxTaositAttackPoint, int defensePoint, int maxDefensePoint,
+			int magicDefensePoint, int maxMagicDefensePoint) {
 		this.attackPoint = attackPoint;
+		this.maxAttackPoint = maxAttackPoint;
 		this.magicAttackPoint = magicAttackPoint;
+		this.maxMagicAttackPoint = maxMagicAttackPoint;
 		this.taositAttackPoint = taositAttackPoint;
+		this.maxTaositAttackPoint = maxTaositAttackPoint;
 		this.defensePoint = defensePoint;
+		this.maxDefensePoint = maxDefensePoint;
 		this.magicDefensePoint = magicDefensePoint;
+		this.maxMagicDefensePoint = maxMagicDefensePoint;
 	}
-	
 }

@@ -382,19 +382,29 @@ public final class Messages {
     private static void pack(ChrPublicInfo info, DataOutput buffer) throws IOException {
     	if (info == null) return;
     	buffer.writeInt(info.attackPoint);
+    	buffer.writeInt(info.maxAttackPoint);
     	buffer.writeInt(info.magicAttackPoint);
+    	buffer.writeInt(info.maxMagicAttackPoint);
     	buffer.writeInt(info.taositAttackPoint);
+    	buffer.writeInt(info.maxTaositAttackPoint);
     	buffer.writeInt(info.defensePoint);
+    	buffer.writeInt(info.maxDefensePoint);
     	buffer.writeInt(info.magicDefensePoint);
+    	buffer.writeInt(info.maxMagicDefensePoint);
     }
     private static ChrPublicInfo unpackChrPublicInfo(ByteBuffer buffer) {
     	if (!buffer.hasRemaining()) return null;
     	var attackPoint = buffer.getInt();
+    	var maxAttackPoint = buffer.getInt();
     	var magicAttackPoint = buffer.getInt();
+    	var maxMagicAttackPoint = buffer.getInt();
     	var taositAttackPoint = buffer.getInt();
+    	var maxTaositAttackPoint = buffer.getInt();
     	var defensePoint = buffer.getInt();
+    	var maxDefensePoint = buffer.getInt();
     	var magicDefensePoint = buffer.getInt();
-    	return new ChrPublicInfo(attackPoint, magicAttackPoint, taositAttackPoint, defensePoint, magicDefensePoint);
+    	var maxMagicDefensePoint = buffer.getInt();
+    	return new ChrPublicInfo(attackPoint, maxAttackPoint, magicAttackPoint, maxMagicAttackPoint, taositAttackPoint, maxTaositAttackPoint, defensePoint, maxDefensePoint, magicDefensePoint, maxMagicDefensePoint);
     }
     private static void pack(ChrPrivateInfo info, DataOutput buffer) throws IOException {
     	if (info == null) return;
