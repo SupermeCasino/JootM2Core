@@ -21,7 +21,9 @@ public enum MessageType {
 	/** 进入游戏世界 */
 	ENTER_REQ(1004),
 	/** 进入游戏世界结果 */
-	ENTER_RESP(1005);
+	ENTER_RESP(1005),
+	/** 客户端连上时服务器返回一些配置信息 */
+	SYS_INFO(1006);
 
     private int id_;
     private MessageType(int id) {

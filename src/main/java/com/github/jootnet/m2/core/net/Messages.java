@@ -12,11 +12,14 @@ import com.github.jootnet.m2.core.actor.Direction;
 import com.github.jootnet.m2.core.actor.HumActionInfo;
 import com.github.jootnet.m2.core.actor.Occupation;
 import com.github.jootnet.m2.core.actor.ChrBasicInfo;
+import com.github.jootnet.m2.core.actor.ChrPrivateInfo;
+import com.github.jootnet.m2.core.actor.ChrPublicInfo;
 import com.github.jootnet.m2.core.net.messages.EnterReq;
 import com.github.jootnet.m2.core.net.messages.EnterResp;
 import com.github.jootnet.m2.core.net.messages.HumActionChange;
 import com.github.jootnet.m2.core.net.messages.LoginReq;
 import com.github.jootnet.m2.core.net.messages.LoginResp;
+import com.github.jootnet.m2.core.net.messages.SysInfo;
 
 /**
  * 消息工具类
@@ -94,7 +97,24 @@ public final class Messages {
 		case ENTER_RESP: {
 			var enterResp = (EnterResp) message;
 			pack(enterResp.forbidTip, buffer);
-			pack(enterResp.cbi, buffer);
+			pack(enterResp.cBasic, buffer);
+			pack(enterResp.cPublic, buffer);
+			pack(enterResp.cPri, buffer);
+			break;
+		}
+		case SYS_INFO: {
+			var sysInfo = (SysInfo) message;
+			buffer.writeLong(sysInfo.time);
+			buffer.writeInt(sysInfo.mapCount);
+			for (var i = 0; i < sysInfo.mapCount; ++i) {
+				pack(sysInfo.mapNos[i], buffer);
+			}
+			for (var i = 0; i < sysInfo.mapCount; ++i) {
+				pack(sysInfo.mapNames[i], buffer);
+			}
+			for (var i = 0; i < sysInfo.mapCount; ++i) {
+				buffer.writeInt(sysInfo.mapMMaps[i]);
+			}
 			break;
 		}
 		
@@ -135,16 +155,14 @@ public final class Messages {
 			var nx = buffer.getShort();
 			var ny = buffer.getShort();
 			var humActionInfo = new HumActionInfo();
-			unpack(humActionInfo, buffer);
+			unpackHumActionInfo(humActionInfo, buffer);
 			return new HumActionChange(name, x, y, nx, ny, humActionInfo);
 		}
-		
 		case LOGIN_REQ: {
 			String una = unpackString(buffer);
 			String psw = unpackString(buffer);
 			return new LoginReq(una, psw);
 		}
-		
 		case LOGIN_RESP: {
 			var code = buffer.getInt();
 			String serverTip = unpackString(buffer);
@@ -163,17 +181,32 @@ public final class Messages {
 			String lastName = unpackString(buffer);
 			return new LoginResp(code, serverTip, roles, lastName);
 		}
-		
 		case ENTER_REQ: {
 			return new EnterReq(unpackString(buffer));
 		}
-		
 		case ENTER_RESP: {
 			var forbidTip = unpackString(buffer);
 			if (forbidTip != null) {
-				return new EnterResp(forbidTip, null);
+				return new EnterResp(forbidTip, null, null, null);
 			}
-			return new EnterResp(null, unpackChrBasicInfo(buffer));
+			return new EnterResp(null, unpackChrBasicInfo(buffer), unpackChrPublicInfo(buffer), unpackChrPrivateInfo(buffer));
+		}
+		case SYS_INFO: {
+			var time = buffer.getLong();
+			var mapCount = buffer.getInt();
+			var mapNos = new String[mapCount];
+			var mapNames = new String[mapCount];
+			var mapMMaps = new int[mapCount];
+			for (var i = 0; i < mapCount; ++i) {
+				mapNos[i] = unpackString(buffer);
+			}
+			for (var i = 0; i < mapCount; ++i) {
+				mapNames[i] = unpackString(buffer);
+			}
+			for (var i = 0; i < mapCount; ++i) {
+				mapMMaps[i] = buffer.getInt();
+			}
+			return new SysInfo(time, mapCount, mapNos, mapNames, mapMMaps);
 		}
 		
 		default:
@@ -277,7 +310,7 @@ public final class Messages {
     	buffer.writeShort(info.frameCount);
     	buffer.writeShort(info.duration);
     }
-    private static void unpack(HumActionInfo info, ByteBuffer buffer) {
+    private static void unpackHumActionInfo(HumActionInfo info, ByteBuffer buffer) {
     	byte actOrdinal = buffer.get();
     	for (var act : Action.values()) {
     		if (act.ordinal() == actOrdinal) {
@@ -299,10 +332,13 @@ public final class Messages {
     private static void pack(ChrBasicInfo info, DataOutput buffer) throws IOException {
     	if (info == null) return;
     	pack(info.name, buffer);
+    	buffer.writeByte(info.gender);
     	buffer.writeInt(info.occupation.ordinal());
     	buffer.writeInt(info.level);
     	buffer.writeInt(info.hp);
+    	buffer.writeInt(info.maxHp);
     	buffer.writeInt(info.mp);
+    	buffer.writeInt(info.maxMp);
     	buffer.writeInt(info.humFileIdx);
     	buffer.writeInt(info.humIdx);
     	buffer.writeInt(info.humEffectFileIdx);
@@ -311,11 +347,11 @@ public final class Messages {
     	buffer.writeInt(info.weaponIdx);
     	buffer.writeInt(info.weaponEffectFileIdx);
     	buffer.writeInt(info.weaponEffectIdx);
-    	pack(info.mapNo, buffer);
     	buffer.writeInt(info.x);
     	buffer.writeInt(info.y);
     }
     private static ChrBasicInfo unpackChrBasicInfo(ByteBuffer buffer) {
+    	if (!buffer.hasRemaining()) return null;
     	var name = unpackString(buffer);
     	var oi = buffer.getInt();
     	Occupation occ = null;
@@ -325,9 +361,12 @@ public final class Messages {
     			break;
     		}
     	}
+    	var gender = buffer.get();
     	var level = buffer.getInt();
     	var hp = buffer.getInt();
+    	var maxHp = buffer.getInt();
     	var mp = buffer.getInt();
+    	var maxMp = buffer.getInt();
     	var humFileIdx = buffer.getInt();
     	var humIdx = buffer.getInt();
     	var humEffectFileIdx = buffer.getInt();
@@ -336,18 +375,48 @@ public final class Messages {
     	var weaponIdx = buffer.getInt();
     	var weaponEffectFileIdx = buffer.getInt();
     	var weaponEffectIdx = buffer.getInt();
-    	var mapNo = unpackString(buffer);
     	var x = buffer.getInt();
     	var y = buffer.getInt();
-    	var ret = new ChrBasicInfo(name, occ, level, hp, mp, mapNo, x, y);
-    	ret.humFileIdx = humFileIdx;
-    	ret.humIdx = humIdx;
-    	ret.humEffectFileIdx = humEffectFileIdx;
-    	ret.humEffectIdx = humEffectIdx;
-    	ret.weaponFileIdx = weaponFileIdx;
-    	ret.weaponIdx = weaponIdx;
-    	ret.weaponEffectFileIdx = weaponEffectFileIdx;
-    	ret.weaponEffectIdx = weaponEffectIdx;
-    	return ret;
+    	return new ChrBasicInfo(name, gender, occ, level, hp, maxHp, mp, maxMp, humFileIdx, humIdx, humEffectFileIdx, humEffectIdx, weaponFileIdx, weaponIdx, weaponEffectFileIdx, weaponEffectIdx, x, y);
+    }
+    private static void pack(ChrPublicInfo info, DataOutput buffer) throws IOException {
+    	if (info == null) return;
+    	buffer.writeInt(info.attackPoint);
+    	buffer.writeInt(info.magicAttackPoint);
+    	buffer.writeInt(info.taositAttackPoint);
+    	buffer.writeInt(info.defensePoint);
+    	buffer.writeInt(info.magicDefensePoint);
+    }
+    private static ChrPublicInfo unpackChrPublicInfo(ByteBuffer buffer) {
+    	if (!buffer.hasRemaining()) return null;
+    	var attackPoint = buffer.getInt();
+    	var magicAttackPoint = buffer.getInt();
+    	var taositAttackPoint = buffer.getInt();
+    	var defensePoint = buffer.getInt();
+    	var magicDefensePoint = buffer.getInt();
+    	return new ChrPublicInfo(attackPoint, magicAttackPoint, taositAttackPoint, defensePoint, magicDefensePoint);
+    }
+    private static void pack(ChrPrivateInfo info, DataOutput buffer) throws IOException {
+    	if (info == null) return;
+    	buffer.writeInt(info.exp);
+    	buffer.writeInt(info.levelUpExp);
+    	buffer.writeInt(info.bagWeight);
+    	buffer.writeInt(info.maxBagWeight);
+    	buffer.writeInt(info.wearWeight);
+    	buffer.writeInt(info.maxWearWeight);
+    	buffer.writeInt(info.handWeight);
+    	buffer.writeInt(info.maxHandWeight);
+    }
+    private static ChrPrivateInfo unpackChrPrivateInfo(ByteBuffer buffer) {
+    	if (!buffer.hasRemaining()) return null;
+    	var exp = buffer.getInt();
+    	var levelUpExp = buffer.getInt();
+    	var bagWeight = buffer.getInt();
+    	var maxBagWeight = buffer.getInt();
+    	var wearWeight = buffer.getInt();
+    	var maxWearWeight = buffer.getInt();
+    	var handWeight = buffer.getInt();
+    	var maxHandWeight = buffer.getInt();
+    	return new ChrPrivateInfo(exp, levelUpExp, bagWeight, maxBagWeight, wearWeight, maxWearWeight, handWeight, maxHandWeight);
     }
 }

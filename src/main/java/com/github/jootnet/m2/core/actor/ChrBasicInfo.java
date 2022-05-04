@@ -5,19 +5,31 @@ import java.beans.PropertyChangeSupport;
 
 /**
  * 角色基础信息
+ * <br>
+ * 角色属性中的开放部分
+ * <br>
+ * 这些属性可以被在同一地图的所有其他玩家知晓；而且必须知晓，不然没法绘制其他角色
+ * <br>
+ * 包括：昵称/性别/职业/等级/血量/蓝量/穿着/动作
  */
 public final class ChrBasicInfo {
 
 	/** 昵称 */
 	public String name;
+	/** 性别 0:男 1:女 */
+	public byte gender;
 	/** 职业 */
 	public Occupation occupation;
 	/** 等级 */
 	public int level;
-	/** 血量 */
+	/** 当前血量 */
 	public int hp;
+	/** 最大血量 */
+	public int maxHp;
 	/** 蓝量 */
 	public int mp;
+	/** 最大蓝量 */
+	public int maxMp;
 	
 	/** 衣服文件索引 */
 	public int humFileIdx;
@@ -35,9 +47,6 @@ public final class ChrBasicInfo {
 	public int weaponEffectFileIdx;
 	/** 武器特效文件内编号 */
 	public int weaponEffectIdx;
-	
-	/** 挂机地图 */
-	public String mapNo;
 	/** 身处地图x坐标 */
 	public int x;
 	/** 身处地图y坐标 */
@@ -45,6 +54,42 @@ public final class ChrBasicInfo {
 	
 	/** 当前动作 */
 	public HumActionInfo action;
+	/** 动作完成后应该更新的地图坐标x */
+	public int nextX;
+	/** 动作完成后应该更新的地图坐标y */
+	public int nextY;
+	
+	
+
+	public ChrBasicInfo(String name, byte gender, Occupation occupation, int level, int hp, int maxHp, int mp, int mxMp,
+			int humFileIdx, int humIdx, int humEffectFileIdx, int humEffectIdx, int weaponFileIdx, int weaponIdx,
+			int weaponEffectFileIdx, int weaponEffectIdx, int x, int y) {
+		this.name = name;
+		this.gender = gender;
+		this.occupation = occupation;
+		this.level = level;
+		this.hp = hp;
+		this.maxHp = maxHp;
+		this.mp = mp;
+		this.maxMp = mxMp;
+		this.humFileIdx = humFileIdx;
+		this.humIdx = humIdx;
+		this.humEffectFileIdx = humEffectFileIdx;
+		this.humEffectIdx = humEffectIdx;
+		this.weaponFileIdx = weaponFileIdx;
+		this.weaponIdx = weaponIdx;
+		this.weaponEffectFileIdx = weaponEffectFileIdx;
+		this.weaponEffectIdx = weaponEffectIdx;
+		this.x = x;
+		this.y = y;
+		this.nextX = x;
+		this.nextY = y;
+		this.action = HumActionInfos.StandSouth;
+		this.actionStartTime = System.currentTimeMillis();
+		this.actionTick = 1;
+		this.actionFrameStartTime = this.actionStartTime;
+	}
+	
 	/** 动作开始时间 */
 	public long actionStartTime;
 	/** 动作帧号 */
@@ -55,28 +100,6 @@ public final class ChrBasicInfo {
 	public int shiftX;
 	/** 动作造成的像素偏移y */
 	public int shiftY;
-	/** 动作完成后应该更新的地图坐标x */
-	public int nextX;
-	/** 动作完成后应该更新的地图坐标y */
-	public int nextY;
-
-	public ChrBasicInfo(String name, Occupation occupation, int level, int hp, int mp, String mapNo, int x, int y) {
-		this.name = name;
-		this.occupation = occupation;
-		this.level = level;
-		this.hp = hp;
-		this.mp = mp;
-		this.humIdx = 1;
-		this.mapNo = mapNo;
-		this.x = x;
-		this.y = y;
-		this.nextX = x;
-		this.nextY = y;
-		this.action = HumActionInfos.StandSouth;
-		this.actionStartTime = System.currentTimeMillis();
-		this.actionTick = 1;
-		this.actionFrameStartTime = this.actionStartTime;
-	}
 
 	private final PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
 	

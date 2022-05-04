@@ -1,6 +1,8 @@
 package com.github.jootnet.m2.core.net.messages;
 
 import com.github.jootnet.m2.core.actor.ChrBasicInfo;
+import com.github.jootnet.m2.core.actor.ChrPrivateInfo;
+import com.github.jootnet.m2.core.actor.ChrPublicInfo;
 import com.github.jootnet.m2.core.net.Message;
 import com.github.jootnet.m2.core.net.MessageType;
 
@@ -22,11 +24,19 @@ public class EnterResp implements Message {
 
 	/** 角色禁用原因 */
 	public String forbidTip;
-	/** 角色的状态 */
-	public ChrBasicInfo cbi;
+	/** 角色基础信息 */
+	public ChrBasicInfo cBasic;
+	/** 角色可探查信息 */
+	public ChrPublicInfo cPublic;
+	/** 角色私有信息 */
+	public ChrPrivateInfo cPri;
 	
-	public EnterResp(String forbidTip, ChrBasicInfo cbi) {
+	public EnterResp(String forbidTip, ChrBasicInfo cBasic, ChrPublicInfo cPublic, ChrPrivateInfo cPri) {
 		this.forbidTip = forbidTip;
-		this.cbi = cbi;
+		this.cBasic = cBasic;
+		this.cPublic = cPublic;
+		this.cPri = cPri;
 	}
+	
+	
 }
