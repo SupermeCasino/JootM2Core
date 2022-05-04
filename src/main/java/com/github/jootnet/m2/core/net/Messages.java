@@ -8,6 +8,7 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
 import com.github.jootnet.m2.core.actor.Action;
+import com.github.jootnet.m2.core.actor.AttackMode;
 import com.github.jootnet.m2.core.actor.Direction;
 import com.github.jootnet.m2.core.actor.HumActionInfo;
 import com.github.jootnet.m2.core.actor.Occupation;
@@ -416,6 +417,7 @@ public final class Messages {
     	buffer.writeInt(info.maxWearWeight);
     	buffer.writeInt(info.handWeight);
     	buffer.writeInt(info.maxHandWeight);
+    	buffer.writeInt(info.attackMode.ordinal());
     }
     private static ChrPrivateInfo unpackChrPrivateInfo(ByteBuffer buffer) {
     	if (!buffer.hasRemaining()) return null;
@@ -427,6 +429,14 @@ public final class Messages {
     	var maxWearWeight = buffer.getInt();
     	var handWeight = buffer.getInt();
     	var maxHandWeight = buffer.getInt();
-    	return new ChrPrivateInfo(exp, levelUpExp, bagWeight, maxBagWeight, wearWeight, maxWearWeight, handWeight, maxHandWeight);
+    	var ordinal = buffer.getInt();
+    	var attackMode = AttackMode.All;
+    	for (var item : AttackMode.values()) {
+    		if (item.ordinal() == ordinal) {
+    			attackMode = item;
+    			break;
+    		}
+    	}
+    	return new ChrPrivateInfo(exp, levelUpExp, bagWeight, maxBagWeight, wearWeight, maxWearWeight, handWeight, maxHandWeight, attackMode);
     }
 }

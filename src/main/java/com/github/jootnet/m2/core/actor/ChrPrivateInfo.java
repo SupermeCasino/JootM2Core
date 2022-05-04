@@ -27,9 +27,11 @@ public final class ChrPrivateInfo {
 	public int handWeight;
 	/** 最大腕力 */
 	public int maxHandWeight;
+	/** 攻击模式 */
+	public AttackMode attackMode;
 	
 	public ChrPrivateInfo(int exp, int levelUpExp, int bagWeight, int maxBagWeight, int wearWeight, int maxWearWeight,
-			int handWeight, int maxHandWeight) {
+			int handWeight, int maxHandWeight, AttackMode attackMode) {
 		this.exp = exp;
 		this.levelUpExp = levelUpExp;
 		this.bagWeight = bagWeight;
@@ -38,5 +40,6 @@ public final class ChrPrivateInfo {
 		this.maxWearWeight = maxWearWeight;
 		this.handWeight = handWeight;
 		this.maxHandWeight = maxHandWeight;
+		this.attackMode = attackMode;
 	}
 }
