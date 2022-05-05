@@ -119,12 +119,12 @@ public final class ChrBasicInfo {
 	public ChrBasicInfo setPosition(int x, int y) {
 		var ox = this.x;
 		var oy = this.y;
-		this.x = x;
-		this.y = y;
 		if (x != this.x)
 			propertyChangeSupport.firePropertyChange("x", ox, x);
 		if (y != this.y)
 			propertyChangeSupport.firePropertyChange("y", oy, y);
+		this.x = x;
+		this.y = y;
 		this.nextX = x;
 		this.nextY = y;
 		return this;
