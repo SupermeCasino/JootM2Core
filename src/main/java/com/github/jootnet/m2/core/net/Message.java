@@ -26,7 +26,7 @@ public abstract class Message {
 	protected static Map<MessageType, MessageDeSerializer> deSerializers = new HashMap<>();
 	
 	static {
-		getClassName("com.github.jootnet.m2.core.net.messages", true).parallelStream().forEach(t -> {
+		getClassName("com.github.jootnet.m2.core.net.messages", true).stream().forEach(t -> {
 			try {
 				Class.forName(t);
 			} catch (ClassNotFoundException e) {
