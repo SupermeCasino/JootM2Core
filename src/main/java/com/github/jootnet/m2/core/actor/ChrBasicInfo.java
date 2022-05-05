@@ -24,11 +24,11 @@ public final class ChrBasicInfo {
 	public int level;
 	/** 当前血量 */
 	public int hp;
-	/** 最大血量 */
+	/** 血量上限 */
 	public int maxHp;
-	/** 蓝量 */
+	/** 当前蓝量 */
 	public int mp;
-	/** 最大蓝量 */
+	/** 蓝量上限 */
 	public int maxMp;
 	
 	/** 衣服文件索引 */
@@ -58,7 +58,6 @@ public final class ChrBasicInfo {
 	public int nextX;
 	/** 动作完成后应该更新的地图坐标y */
 	public int nextY;
-	
 	
 
 	public ChrBasicInfo(String name, byte gender, Occupation occupation, int level, int hp, int maxHp, int mp, int mxMp,
@@ -118,14 +117,83 @@ public final class ChrBasicInfo {
 	 * @return 当前对象
 	 */
 	public ChrBasicInfo setPosition(int x, int y) {
-		if (x != this.x)
-			propertyChangeSupport.firePropertyChange("x", this.x, x);
-		if (y != this.y)
-			propertyChangeSupport.firePropertyChange("y", this.y, y);
+		var ox = this.x;
+		var oy = this.y;
 		this.x = x;
 		this.y = y;
+		if (x != this.x)
+			propertyChangeSupport.firePropertyChange("x", ox, x);
+		if (y != this.y)
+			propertyChangeSupport.firePropertyChange("y", oy, y);
 		this.nextX = x;
 		this.nextY = y;
+		return this;
+	}
+	/**
+	 * 更新角色昵称
+	 * 
+	 * @param name 新的角色昵称
+	 * @return 当前对象
+	 */
+	public ChrBasicInfo setName(String name) {
+		if (!this.name.equals(name))
+			propertyChangeSupport.firePropertyChange("name", this.name, name);
+		this.name = name;
+		return this;
+	}
+	/**
+	 * 更新角色等级
+	 * 
+	 * @param level 新的人物等级
+	 * @return 当前对象
+	 */
+	public ChrBasicInfo setLevel(int level) {
+		if (this.level != level)
+			propertyChangeSupport.firePropertyChange("level", this.level, level);
+		return this;
+	}
+	/**
+	 * 更新角色血量
+	 * 
+	 * @param hp 新的角色血量
+	 * @return 当前对象
+	 */
+	public ChrBasicInfo setHP(int hp) {
+		if (this.hp != hp)
+			propertyChangeSupport.firePropertyChange("hp", this.hp, hp);
+		return this;
+	}
+	/**
+	 * 更新角色血量上限
+	 * 
+	 * @param hp 新的角色血量上限
+	 * @return 当前对象
+	 */
+	public ChrBasicInfo setMaxHP(int maxHp) {
+		if (this.maxHp != maxHp)
+			propertyChangeSupport.firePropertyChange("maxHp", this.maxHp, maxHp);
+		return this;
+	}
+	/**
+	 * 更新角色蓝量
+	 * 
+	 * @param hp 新的角色蓝量
+	 * @return 当前对象
+	 */
+	public ChrBasicInfo setMP(int mp) {
+		if (this.mp != mp)
+			propertyChangeSupport.firePropertyChange("mp", this.mp, mp);
+		return this;
+	}
+	/**
+	 * 更新角色蓝量上限
+	 * 
+	 * @param hp 新的角色蓝量上限
+	 * @return 当前对象
+	 */
+	public ChrBasicInfo setMaxMP(int maxMp) {
+		if (this.maxMp != maxMp)
+			propertyChangeSupport.firePropertyChange("maxMp", this.maxMp, maxMp);
 		return this;
 	}
 	

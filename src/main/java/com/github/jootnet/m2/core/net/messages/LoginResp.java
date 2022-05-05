@@ -1,9 +1,35 @@
 package com.github.jootnet.m2.core.net.messages;
 
+import java.io.DataOutput;
+import java.io.IOException;
+
 import com.github.jootnet.m2.core.net.Message;
 import com.github.jootnet.m2.core.net.MessageType;
 
-public class LoginResp implements Message {
+public class LoginResp extends Message {
+	
+	static {
+		deSerializers.put(MessageType.ENTER_REQ, buffer -> {
+			if (!buffer.hasRemaining())
+				return null;
+			var code = buffer.getInt();
+			String serverTip = unpackString(buffer);
+			int roleCount = buffer.get();
+			var roles = new LoginResp.Role[roleCount];
+			for (var i = 0; i < roleCount; ++i) {
+				roles[i] = new LoginResp.Role();
+				roles[i].type = buffer.getInt();
+				roles[i].gender = buffer.get();
+				roles[i].level = buffer.getInt();
+				roles[i].name = unpackString(buffer);
+				roles[i].mapNo = unpackString(buffer);
+				roles[i].x = buffer.getShort();
+				roles[i].y = buffer.getShort();
+			}
+			String lastName = unpackString(buffer);
+			return new LoginResp(code, serverTip, roles, lastName);
+		});
+	}
 	
 	/**
 	 * 角色
@@ -42,5 +68,30 @@ public class LoginResp implements Message {
 		this.serverTip = serverTip;
 		this.roles = roles;
 		this.lastName = lastName;
+	}
+
+	@Override
+	protected void packCore(DataOutput buffer) throws IOException {
+		// 1.错误码
+		buffer.writeInt(code);
+		// 2.服务端消息
+		packString(serverTip, buffer);
+		// 3.角色列表
+		if (roles != null) {
+			buffer.writeByte((byte) roles.length);
+			for (var r : roles) {
+				buffer.writeInt(r.type);
+				buffer.writeByte(r.gender);
+				buffer.writeInt(r.level);
+				packString(r.name, buffer);
+				packString(r.mapNo, buffer);
+				buffer.writeShort(r.x);
+				buffer.writeShort(r.y);
+			}
+		} else {
+			buffer.writeByte(0);
+		}
+		// 4.上次选择的昵称
+		packString(lastName, buffer);
 	}
 }

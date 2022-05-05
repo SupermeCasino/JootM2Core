@@ -1,5 +1,8 @@
 package com.github.jootnet.m2.core.actor;
 
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
+
 /**
  * 人物公开属性
  * <br>
@@ -45,4 +48,86 @@ public final class ChrPublicInfo {
 		this.magicDefensePoint = magicDefensePoint;
 		this.maxMagicDefensePoint = maxMagicDefensePoint;
 	}
+
+	private final PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
+	
+	public void addPropertyChangeListener(PropertyChangeListener listener) { 
+		propertyChangeSupport.addPropertyChangeListener(listener); 
+	}
+    
+	public void removePropertyChangeListener(PropertyChangeListener listener) { 
+		propertyChangeSupport.removePropertyChangeListener(listener); 
+	}
+
+	public ChrPublicInfo setAttackPoint(int attackPoint) {
+		if (this.attackPoint != attackPoint)
+			propertyChangeSupport.firePropertyChange("attackPoint", this.attackPoint, attackPoint);
+		this.attackPoint = attackPoint;
+		return this;
+	}
+
+	public ChrPublicInfo setMaxAttackPoint(int maxAttackPoint) {
+		if (this.maxAttackPoint != maxAttackPoint)
+			propertyChangeSupport.firePropertyChange("maxAttackPoint", this.maxAttackPoint, maxAttackPoint);
+		this.maxAttackPoint = maxAttackPoint;
+		return this;
+	}
+
+	public ChrPublicInfo setMagicAttackPoint(int magicAttackPoint) {
+		if (this.magicAttackPoint != magicAttackPoint)
+			propertyChangeSupport.firePropertyChange("magicAttackPoint", this.magicAttackPoint, magicAttackPoint);
+		this.magicAttackPoint = magicAttackPoint;
+		return this;
+	}
+
+	public ChrPublicInfo setMaxMagicAttackPoint(int maxMagicAttackPoint) {
+		if (this.maxMagicAttackPoint != maxMagicAttackPoint)
+			propertyChangeSupport.firePropertyChange("maxMagicAttackPoint", this.maxMagicAttackPoint, maxMagicAttackPoint);
+		this.maxMagicAttackPoint = maxMagicAttackPoint;
+		return this;
+	}
+
+	public ChrPublicInfo setTaositAttackPoint(int taositAttackPoint) {
+		if (this.taositAttackPoint != taositAttackPoint)
+			propertyChangeSupport.firePropertyChange("taositAttackPoint", this.taositAttackPoint, taositAttackPoint);
+		this.taositAttackPoint = taositAttackPoint;
+		return this;
+	}
+
+	public ChrPublicInfo setMaxTaositAttackPoint(int maxTaositAttackPoint) {
+		if (this.maxTaositAttackPoint != maxTaositAttackPoint)
+			propertyChangeSupport.firePropertyChange("maxTaositAttackPoint", this.maxTaositAttackPoint, maxTaositAttackPoint);
+		this.maxTaositAttackPoint = maxTaositAttackPoint;
+		return this;
+	}
+
+	public ChrPublicInfo setDefensePoint(int defensePoint) {
+		if (this.defensePoint != defensePoint)
+			propertyChangeSupport.firePropertyChange("defensePoint", this.defensePoint, defensePoint);
+		this.defensePoint = defensePoint;
+		return this;
+	}
+
+	public ChrPublicInfo setMaxDefensePoint(int maxDefensePoint) {
+		if (this.maxDefensePoint != maxDefensePoint)
+			propertyChangeSupport.firePropertyChange("maxDefensePoint", this.maxDefensePoint, maxDefensePoint);
+		this.maxDefensePoint = maxDefensePoint;
+		return this;
+	}
+
+	public ChrPublicInfo setMagicDefensePoint(int magicDefensePoint) {
+		if (this.magicDefensePoint != magicDefensePoint)
+			propertyChangeSupport.firePropertyChange("magicDefensePoint", this.magicDefensePoint, magicDefensePoint);
+		this.magicDefensePoint = magicDefensePoint;
+		return this;
+	}
+
+	public ChrPublicInfo setMaxMagicDefensePoint(int maxMagicDefensePoint) {
+		if (this.maxMagicDefensePoint != maxMagicDefensePoint)
+			propertyChangeSupport.firePropertyChange("maxMagicDefensePoint", this.maxMagicDefensePoint, maxMagicDefensePoint);
+		this.maxMagicDefensePoint = maxMagicDefensePoint;
+		return this;
+	}
+	
+	
 }
