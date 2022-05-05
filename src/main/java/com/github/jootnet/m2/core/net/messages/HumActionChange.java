@@ -16,7 +16,7 @@ import com.github.jootnet.m2.core.net.MessageType;
 public final class HumActionChange extends Message {
 	
 	static {
-		deSerializers.put(MessageType.ENTER_REQ, buffer -> {
+		deSerializers.put(MessageType.HUM_ACTION_CHANGE, buffer -> {
 			if (!buffer.hasRemaining())
 				return null;
 			String name = unpackString(buffer);

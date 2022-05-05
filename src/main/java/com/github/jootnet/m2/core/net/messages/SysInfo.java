@@ -9,7 +9,7 @@ import com.github.jootnet.m2.core.net.MessageType;
 public final class SysInfo extends Message {
 	
 	static {
-		deSerializers.put(MessageType.ENTER_REQ, buffer -> {
+		deSerializers.put(MessageType.SYS_INFO, buffer -> {
 			if (!buffer.hasRemaining())
 				return null;
 			var time = buffer.getLong();

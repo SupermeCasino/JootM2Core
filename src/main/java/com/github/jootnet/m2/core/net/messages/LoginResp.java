@@ -9,7 +9,7 @@ import com.github.jootnet.m2.core.net.MessageType;
 public class LoginResp extends Message {
 	
 	static {
-		deSerializers.put(MessageType.ENTER_REQ, buffer -> {
+		deSerializers.put(MessageType.LOGIN_RESP, buffer -> {
 			if (!buffer.hasRemaining())
 				return null;
 			var code = buffer.getInt();

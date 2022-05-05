@@ -24,7 +24,7 @@ import com.github.jootnet.m2.core.net.MessageType;
 public class EnterResp extends Message {
 	
 	static {
-		deSerializers.put(MessageType.ENTER_REQ, buffer -> {
+		deSerializers.put(MessageType.ENTER_RESP, buffer -> {
 			if (!buffer.hasRemaining())
 				return null;
 			var forbidTip = unpackString(buffer);

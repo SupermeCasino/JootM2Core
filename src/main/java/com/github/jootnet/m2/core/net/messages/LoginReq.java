@@ -15,7 +15,7 @@ import com.github.jootnet.m2.core.net.MessageType;
 public final class LoginReq extends Message {
 	
 	static {
-		deSerializers.put(MessageType.ENTER_REQ, buffer -> {
+		deSerializers.put(MessageType.LOGIN_REQ, buffer -> {
 			if (!buffer.hasRemaining())
 				return null;
 			String una = unpackString(buffer);
