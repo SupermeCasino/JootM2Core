@@ -54,6 +54,8 @@ public class LoginResp extends Message {
 	 * 0 登陆成功
 	 * 1 用户名或密码错误
 	 * 2 用户不存在
+	 * 3 用户已在其他地方登陆
+	 * 99 其他
 	 */
 	public int code;
 	/** 服务端提示信息 */
