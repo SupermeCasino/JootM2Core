@@ -59,10 +59,12 @@ public final class ChrBasicInfo {
 	/** 动作完成后应该更新的地图坐标y */
 	public int nextY;
 	
+	/** 所在行会名称 */
+	public String guildName;
 
 	public ChrBasicInfo(String name, byte gender, Occupation occupation, int level, int hp, int maxHp, int mp, int mxMp,
 			int humFileIdx, int humIdx, int humEffectFileIdx, int humEffectIdx, int weaponFileIdx, int weaponIdx,
-			int weaponEffectFileIdx, int weaponEffectIdx, int x, int y) {
+			int weaponEffectFileIdx, int weaponEffectIdx, int x, int y, String guildName) {
 		this.name = name;
 		this.gender = gender;
 		this.occupation = occupation;
@@ -87,6 +89,7 @@ public final class ChrBasicInfo {
 		this.actionStartTime = System.currentTimeMillis();
 		this.actionTick = 1;
 		this.actionFrameStartTime = this.actionStartTime;
+		this.guildName = guildName;
 	}
 	
 	/** 动作开始时间 */

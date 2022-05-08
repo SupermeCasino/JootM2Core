@@ -88,6 +88,7 @@ public class EnterResp extends Message {
     	buffer.writeInt(info.weaponEffectIdx);
     	buffer.writeInt(info.x);
     	buffer.writeInt(info.y);
+    	packString(info.guildName, buffer);
     }
     private static ChrBasicInfo unpackChrBasicInfo(ByteBuffer buffer) {
     	if (!buffer.hasRemaining()) return null;
@@ -116,7 +117,8 @@ public class EnterResp extends Message {
     	var weaponEffectIdx = buffer.getInt();
     	var x = buffer.getInt();
     	var y = buffer.getInt();
-    	return new ChrBasicInfo(name, gender, occ, level, hp, maxHp, mp, maxMp, humFileIdx, humIdx, humEffectFileIdx, humEffectIdx, weaponFileIdx, weaponIdx, weaponEffectFileIdx, weaponEffectIdx, x, y);
+    	var guildName = unpackString(buffer);
+    	return new ChrBasicInfo(name, gender, occ, level, hp, maxHp, mp, maxMp, humFileIdx, humIdx, humEffectFileIdx, humEffectIdx, weaponFileIdx, weaponIdx, weaponEffectFileIdx, weaponEffectIdx, x, y, guildName);
     }
     private static void pack(ChrPublicInfo info, DataOutput buffer) throws IOException {
     	if (info == null) return;
