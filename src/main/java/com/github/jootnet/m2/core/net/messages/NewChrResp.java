@@ -18,7 +18,15 @@ public class NewChrResp extends Message {
 		deSerializers.put(MessageType.NEW_CHR_RESP, buffer -> {
 			var code = buffer.getInt();
 			var serverTip = unpackString(buffer);
-			return new NewChrResp(code, serverTip);
+			var role = new LoginResp.Role();
+			role.type = buffer.getInt();
+			role.gender = buffer.get();
+			role.level = buffer.getInt();
+			role.name = unpackString(buffer);
+			role.mapNo = unpackString(buffer);
+			role.x = buffer.getShort();
+			role.y = buffer.getShort();
+			return new NewChrResp(code, serverTip, role);
 		});
 	}
 
@@ -35,16 +43,26 @@ public class NewChrResp extends Message {
 	public int code;
 	/** 服务端提示信息 */
 	public String serverTip;
+	/** 创建成功后的角色 */
+	public LoginResp.Role role;
 
-	public NewChrResp(int code, String serverTip) {
+	public NewChrResp(int code, String serverTip, LoginResp.Role role) {
 		this.code = code;
 		this.serverTip = serverTip;
+		this.role = role;
 	}
 
 	@Override
 	protected void packCore(DataOutput buffer) throws IOException {
 		buffer.writeInt(code);
 		packString(serverTip, buffer);
+		buffer.writeInt(role.type);
+		buffer.writeByte(role.gender);
+		buffer.writeInt(role.level);
+		packString(role.name, buffer);
+		packString(role.mapNo, buffer);
+		buffer.writeShort(role.x);
+		buffer.writeShort(role.y);
 	}
 
 }
