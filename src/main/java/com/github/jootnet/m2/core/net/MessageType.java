@@ -23,7 +23,13 @@ public enum MessageType {
 	/** 进入游戏世界结果 */
 	ENTER_RESP(1005),
 	/** 客户端连上时服务器返回一些配置信息 */
-	SYS_INFO(1006);
+	SYS_INFO(1006),
+	/** 新用户 */
+	NEW_USER_REQ(1007),
+	NEW_USER_RESP(1008),
+	/** 新角色 */
+	NEW_CHR_REQ(1009),
+	NEW_CHR_RESP(1010);
 
     private int id_;
     private MessageType(int id) {
