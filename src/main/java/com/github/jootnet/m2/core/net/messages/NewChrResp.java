@@ -18,14 +18,17 @@ public class NewChrResp extends Message {
 		deSerializers.put(MessageType.NEW_CHR_RESP, buffer -> {
 			var code = buffer.getInt();
 			var serverTip = unpackString(buffer);
-			var role = new LoginResp.Role();
-			role.type = buffer.getInt();
-			role.gender = buffer.get();
-			role.level = buffer.getInt();
-			role.name = unpackString(buffer);
-			role.mapNo = unpackString(buffer);
-			role.x = buffer.getShort();
-			role.y = buffer.getShort();
+			LoginResp.Role role = null;
+			if (buffer.hasRemaining()) {
+				role = new LoginResp.Role();
+				role.type = buffer.getInt();
+				role.gender = buffer.get();
+				role.level = buffer.getInt();
+				role.name = unpackString(buffer);
+				role.mapNo = unpackString(buffer);
+				role.x = buffer.getShort();
+				role.y = buffer.getShort();
+			}
 			return new NewChrResp(code, serverTip, role);
 		});
 	}
@@ -56,6 +59,7 @@ public class NewChrResp extends Message {
 	protected void packCore(DataOutput buffer) throws IOException {
 		buffer.writeInt(code);
 		packString(serverTip, buffer);
+		if (role == null) return;
 		buffer.writeInt(role.type);
 		buffer.writeByte(role.gender);
 		buffer.writeInt(role.level);
