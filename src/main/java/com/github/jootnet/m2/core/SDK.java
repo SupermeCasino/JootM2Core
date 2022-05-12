@@ -16,7 +16,11 @@
  */
 package com.github.jootnet.m2.core;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
+import java.util.zip.InflaterInputStream;
 
 /**
  * SDK基础函数与常亮
@@ -135,12 +139,31 @@ public final class SDK {
      */
 	public static String repairFileName(String originFileName) {
 		String[] rfns = new File(originFileName.substring(0, originFileName.lastIndexOf(File.separatorChar))).list();
-		for (String rfn : rfns) {
-			if (rfn.equalsIgnoreCase(originFileName)) {
-				return rfn;
+		if (rfns != null) {
+			for (String rfn : rfns) {
+				if (rfn.equalsIgnoreCase(originFileName)) {
+					return rfn;
+				}
 			}
 		}
 		return originFileName;
+	}
+	/**
+	 * 解压zlib压缩过的数据
+	 */
+	public static byte[] unzip(byte[] ziped) throws IOException {
+		try (var iis = new InflaterInputStream(new ByteArrayInputStream(ziped))) {
+			try (var bos = new ByteArrayOutputStream()) {
+				var readLen1 = 0;
+				var buf = new byte[4096];
+
+				while ((readLen1 = iis.read(buf)) > 0) {
+					bos.write(buf, 0, readLen1);
+				}
+
+				return bos.toByteArray();
+			}
+		}
 	}
 	
     /** 调色板，二维字节数组<br>每个颜色为ARGB格式 */
