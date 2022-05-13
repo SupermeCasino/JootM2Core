@@ -121,7 +121,7 @@ public final class WZL extends Thread {
 
 	@Override
 	public void run() {
-		if (!Files.exists(Paths.get(wzxFn))) { // 微端！
+		if (!Files.exists(Paths.get(wzlFn))) { // 微端！
 			runHttp();
 		} else {
 			runFile();
