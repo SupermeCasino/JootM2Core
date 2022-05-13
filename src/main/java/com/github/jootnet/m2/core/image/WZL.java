@@ -12,6 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.zip.ZipException;
 
 import com.github.jootnet.m2.core.SDK;
 
@@ -151,8 +152,8 @@ public final class WZL extends Thread {
 			e.printStackTrace();
 		}
 
-		// 每次处理512K数据
-		var buffer = new byte[512 * 1024];
+		// 每次最多处理1M数据
+		var buffer = new byte[1024 * 1024];
 		while (!cancel) {
 			// 是否已完成所有纹理加载
 			var loadedCompleted = true;
@@ -284,8 +285,8 @@ public final class WZL extends Thread {
 			e.printStackTrace();
 		}
 
-		// 每次处理512K数据
-		var buffer = new byte[512 * 1024];
+		// 每次最多处理1M数据
+		var buffer = new byte[1024 * 1024];
 		while (!cancel) {
 			// 是否已完成所有纹理加载
 			var loadedCompleted = true;
@@ -371,6 +372,14 @@ public final class WZL extends Thread {
 
 	private void unpackTextures(ByteBuffer byteBuffer, int startNo, long fLen) throws IOException {
 		for (var no = startNo; no < imageCount; ++no) {
+			if (offsetList[no] == 0) {
+				if (!loadedFlag[no]) {
+					loadedFlag[no] = true;
+					if (textureConsumer != null)
+						textureConsumer.recv(fno, no, EMPTY);
+				}
+				continue;
+			}
 			if (byteBuffer.remaining() < 16)
 				break;
 			var colorBit = byteBuffer.get();
@@ -381,6 +390,15 @@ public final class WZL extends Thread {
 			var offsetX = byteBuffer.getShort();
 			var offsetY = byteBuffer.getShort();
 			var dataLen = byteBuffer.getInt();
+			if (dataLen == 0) {
+				// 妈蛋，居然还要我们来解bug
+				if (no == imageCount - 1) {
+					dataLen = (int) (fLen - offsetList[no]);
+				} else {
+					dataLen = offsetList[no + 1] - offsetList[no];
+				}
+				dataLen -= 16;
+			}
 			if (byteBuffer.remaining() < dataLen)
 				break;
 			if (loadedFlag[no]) {
@@ -390,7 +408,11 @@ public final class WZL extends Thread {
 			var pixels = new byte[dataLen];
 			byteBuffer.get(pixels);
 			if (compressFlag) {
-				pixels = SDK.unzip(pixels);
+				try {
+					pixels = SDK.unzip(pixels);
+				} catch (ZipException e) {
+					
+				}
 			}
 			byte[] sRGBA = new byte[width * height * 4];
 			if (colorBit != 5) { // 8位
