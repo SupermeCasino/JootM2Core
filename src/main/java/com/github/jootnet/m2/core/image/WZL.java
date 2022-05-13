@@ -62,6 +62,8 @@ public final class WZL extends Thread {
 	private String fno;
 	/** 加载信号量 */
 	private Semaphore loadSemaphore;
+	/** 自动加载间隔 */
+	private int autoLoadDelyInMilli;
 
 	/**
 	 * 使用wzx文件路径和微端基址初始化WZL对象 <br>
@@ -69,12 +71,14 @@ public final class WZL extends Thread {
 	 * 
 	 * @param wzxFn     wzx文件路径
 	 * @param wdBaseUrl 微端基址
+	 * @param autoLoadDelyInMilli 后台自动加载每1M数据后停顿时长（毫秒记）
 	 */
-	public WZL(String wzxFn, String wdBaseUrl) {
+	public WZL(String wzxFn, String wdBaseUrl, int autoLoadDelyInMilli) {
 		setDaemon(true);
 		setName("WZL-" + hashCode());
 		seizes = new ConcurrentLinkedDeque<>();
 		loadSemaphore = new Semaphore(0);
+		this.autoLoadDelyInMilli = autoLoadDelyInMilli;
 
 		if (!wdBaseUrl.endsWith("/")) wdBaseUrl += "/";
 		fno = SDK.changeFileExtension(new File(wzxFn).getName(), "");
@@ -201,7 +205,7 @@ public final class WZL extends Thread {
 			var seize = seizes.poll();
 			if (seize == null) {
 				try {
-					if (loadSemaphore.tryAcquire(5, TimeUnit.SECONDS)) {
+					if (loadSemaphore.tryAcquire(autoLoadDelyInMilli, TimeUnit.MILLISECONDS)) {
 						seize = seizes.poll();
 					}
 				} catch (InterruptedException e) {
@@ -344,8 +348,7 @@ public final class WZL extends Thread {
 			var seize = seizes.poll();
 			if (seize == null) {
 				try {
-					if (loadSemaphore.tryAcquire(5, TimeUnit.SECONDS)) {
-						// 没有手动加载时每次等两秒再顺序加载，避免内存占用过高
+					if (loadSemaphore.tryAcquire(autoLoadDelyInMilli, TimeUnit.MILLISECONDS)) {
 						seize = seizes.poll();
 					}
 				} catch (InterruptedException e) {
