@@ -12,10 +12,25 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.zip.ZipException;
 
 import com.github.jootnet.m2.core.SDK;
 
+/**
+ * WZL文件解析类
+ * <br>
+ * wzl文件由wzx和wzl组成
+ * <br>
+ * wzx是索引文件，前44字节是文件固定头（可能有版权/修改时间等信息）
+ * <br>  然后是一个int，表示图集中纹理总数（记为n），紧接着是n个int，为wzl文件中每个图片的起始数据偏移
+ * <br>
+ * wzl文件前64字节是描述数据，但0x2C处是一个int，也是纹理总数（n），0x28处可能是修改时间
+ * <br>  然后是根据wzx中的偏移来解析每一张纹理，如果偏移是0，则表示纹理为空
+ * <br>  每个纹理数据由16个固定头部和变长色彩数据组成
+ * <br>  色彩数据可能使用zlib压缩过
+ * 
+ * @author LinXing
+ *
+ */
 public final class WZL extends Thread {
 	/** 库内图片总数 */
 	private int imageCount;
@@ -391,13 +406,12 @@ public final class WZL extends Thread {
 			var offsetY = byteBuffer.getShort();
 			var dataLen = byteBuffer.getInt();
 			if (dataLen == 0) {
-				// 妈蛋，居然还要我们来解bug
-				if (no == imageCount - 1) {
-					dataLen = (int) (fLen - offsetList[no]);
-				} else {
-					dataLen = offsetList[no + 1] - offsetList[no];
-				}
-				dataLen -= 16;
+				// 这里可能是一个bug，或者是其他引擎作者没有说清楚
+				// 本来一直以为是compressFlag作为是否zlib压缩的标志位
+				// 后来发现如果这里的长度是0，则表示没有压缩，后面是图片尺寸的裸数据
+				dataLen = width * height;
+				if (colorBit == 5) dataLen *= 2;
+				compressFlag = false;
 			}
 			if (byteBuffer.remaining() < dataLen)
 				break;
@@ -408,11 +422,7 @@ public final class WZL extends Thread {
 			var pixels = new byte[dataLen];
 			byteBuffer.get(pixels);
 			if (compressFlag) {
-				try {
-					pixels = SDK.unzip(pixels);
-				} catch (ZipException e) {
-					
-				}
+				pixels = SDK.unzip(pixels);
 			}
 			byte[] sRGBA = new byte[width * height * 4];
 			if (colorBit != 5) { // 8位
