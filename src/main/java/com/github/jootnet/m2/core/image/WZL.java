@@ -39,7 +39,7 @@ public final class WZL extends Thread {
 	/** 优先加载的纹理编号 */
 	private Queue<Integer> seizes;
 	/** 后台加载线程是否启动 */
-	private volatile boolean started;
+	private boolean started;
 	/** 文件名 */
 	private String fno;
 
@@ -113,14 +113,15 @@ public final class WZL extends Thread {
 			this.seizes.offer(i);
 		}
 		cancel = false;
-		if (!started)
+		if (!started) {
 			start(); // 启动后台线程进行顺序加载
+			started = true;
+		}
 		return this;
 	}
 
 	@Override
 	public void run() {
-		started = true;
 		if (!Files.exists(Paths.get(wzxFn))) { // 微端！
 			runHttp();
 		} else {
