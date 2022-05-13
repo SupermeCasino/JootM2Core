@@ -112,7 +112,6 @@ public final class WZL extends Thread {
 		for (var i : seizes) {
 			this.seizes.offer(i);
 		}
-		cancel = false;
 		if (!started) {
 			start(); // 启动后台线程进行顺序加载
 			started = true;
