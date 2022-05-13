@@ -12,6 +12,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 
 import com.github.jootnet.m2.core.SDK;
 
@@ -58,6 +60,8 @@ public final class WZL extends Thread {
 	private boolean started;
 	/** 文件名 */
 	private String fno;
+	/** 加载信号量 */
+	private Semaphore loadSemaphore;
 
 	/**
 	 * 使用wzx文件路径和微端基址初始化WZL对象 <br>
@@ -70,6 +74,7 @@ public final class WZL extends Thread {
 		setDaemon(true);
 		setName("WZL-" + hashCode());
 		seizes = new ConcurrentLinkedDeque<>();
+		loadSemaphore = new Semaphore(0);
 
 		if (!wdBaseUrl.endsWith("/")) wdBaseUrl += "/";
 		fno = SDK.changeFileExtension(new File(wzxFn).getName(), "");
@@ -128,6 +133,7 @@ public final class WZL extends Thread {
 		for (var i : seizes) {
 			this.seizes.offer(i);
 		}
+		loadSemaphore.release();
 		if (!started) {
 			start(); // 启动后台线程进行顺序加载
 			started = true;
@@ -193,6 +199,15 @@ public final class WZL extends Thread {
 			var startNo = 0;
 			// 支持抢占式优先级
 			var seize = seizes.poll();
+			if (seize == null) {
+				try {
+					if (loadSemaphore.tryAcquire(5, TimeUnit.SECONDS)) {
+						seize = seizes.poll();
+					}
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
 			if (seize != null && !loadedFlag[seize]) {
 				startNo = seize;
 			} else {
@@ -301,7 +316,7 @@ public final class WZL extends Thread {
 		}
 
 		// 每次最多处理1M数据
-		var buffer = new byte[1024 * 1024];
+		var sliceLen = 1024 * 1024;
 		while (!cancel) {
 			// 是否已完成所有纹理加载
 			var loadedCompleted = true;
@@ -327,6 +342,16 @@ public final class WZL extends Thread {
 			var startNo = 0;
 			// 支持抢占式优先级
 			var seize = seizes.poll();
+			if (seize == null) {
+				try {
+					if (loadSemaphore.tryAcquire(5, TimeUnit.SECONDS)) {
+						// 没有手动加载时每次等两秒再顺序加载，避免内存占用过高
+						seize = seizes.poll();
+					}
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
 			if (seize != null && !loadedFlag[seize]) {
 				startNo = seize;
 			} else {
@@ -346,7 +371,7 @@ public final class WZL extends Thread {
 			}
 
 			var startOffset = offsetList[startNo];
-			var rangeEnd = Math.min(startOffset + buffer.length, fLen - 1);
+			var rangeEnd = Math.min(startOffset + sliceLen, fLen - 1);
 			try {
 				var url = new URL(wzlUrl);
 				var conn = (HttpURLConnection) url.openConnection();
