@@ -39,7 +39,7 @@ public final class WZL extends Thread {
 	/** 纹理数据起始偏移 */
 	private int[] offsetList;
 	/** 纹理加载标志 */
-	private boolean[] loadedFlag;
+	private volatile boolean[] loadedFlag;
 	/** 纹理消费者 */
 	private TextureConsumer textureConsumer;
 	/** 库加载完毕事件 */
@@ -146,6 +146,7 @@ public final class WZL extends Thread {
 			start(); // 启动后台线程进行顺序加载
 			started = true;
 		} else {
+			loadSemaphore.drainPermits();
 			loadSemaphore.release();
 		}
 		return this;
