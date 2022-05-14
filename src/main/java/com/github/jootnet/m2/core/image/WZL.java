@@ -411,9 +411,9 @@ public final class WZL extends Thread {
 					raf.write(dData);
 					byteBuffer = ByteBuffer.wrap(dData).order(ByteOrder.LITTLE_ENDIAN);
 				}
-				unpackTextures(byteBuffer, startNo, fLen);
-
 				conn.disconnect();
+				
+				unpackTextures(byteBuffer, startNo, fLen);
 			} catch (IOException ex) {
 				ex.printStackTrace();
 			}
