@@ -124,6 +124,7 @@ public final class WZL extends Thread {
 	 */
 	public void cancelLoad() {
 		cancel = true;
+		loadSemaphore.release();
 	}
 
 	/**
@@ -210,6 +211,7 @@ public final class WZL extends Thread {
 			if (seize == null) {
 				try {
 					if (loadSemaphore.tryAcquire(autoLoadDelyInMilli, TimeUnit.MILLISECONDS)) {
+						if (cancel) return;
 						seize = seizes.poll();
 					}
 				} catch (InterruptedException e) {
@@ -353,6 +355,7 @@ public final class WZL extends Thread {
 			if (seize == null) {
 				try {
 					if (loadSemaphore.tryAcquire(autoLoadDelyInMilli, TimeUnit.MILLISECONDS)) {
+						if (cancel) return;
 						seize = seizes.poll();
 					}
 				} catch (InterruptedException e) {
@@ -420,6 +423,7 @@ public final class WZL extends Thread {
 	private void unpackTextures(ByteBuffer byteBuffer, int startNo, long fLen) throws IOException {
 		var loadCount = 0;
 		for (var no = startNo; no < imageCount; ++no) {
+			if (cancel) break;
 			if (offsetList[no] == 0) {
 				if (!loadedFlag[no]) {
 					loadedFlag[no] = true;
