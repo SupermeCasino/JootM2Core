@@ -218,8 +218,6 @@ public final class WZL extends Thread {
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
-			} else {
-				loadSemaphore.drainPermits();
 			}
 			if (seize != null && !loadedFlag[seize]) {
 				startNo = seize;
@@ -363,8 +361,6 @@ public final class WZL extends Thread {
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
-			} else {
-				loadSemaphore.drainPermits();
 			}
 			if (seize != null && !loadedFlag[seize]) {
 				startNo = seize;
