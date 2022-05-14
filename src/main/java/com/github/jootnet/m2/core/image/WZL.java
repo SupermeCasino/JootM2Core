@@ -64,8 +64,8 @@ public final class WZL extends Thread {
 	private Semaphore loadSemaphore;
 	/** 自动加载间隔 */
 	private int autoLoadDelyInMilli;
-	/** 单次加载最大纹理数量 */
-	private int maxLoadCountPer;
+	/** 单次加载最大数据量（从磁盘或网络下载） */
+	private int maxLoadSizePer;
 
 	/**
 	 * 使用wzx文件路径和微端基址初始化WZL对象 <br>
@@ -73,16 +73,16 @@ public final class WZL extends Thread {
 	 * 
 	 * @param wzxFn     wzx文件路径
 	 * @param wdBaseUrl 微端基址
-	 * @param autoLoadDelyInMilli 后台自动加载每1M数据后停顿时长（毫秒记）
-	 * @param maxLoadCountPer 每次加载最大纹理数量
+	 * @param autoLoadDelyInMilli 后台自动加载每maxLoadSize字节数据后停顿时长（毫秒记）
+	 * @param maxLoadSize 每次加载最大字节数<br>自动加载或手动加载时都是先读取这么多个字节，然后处理
 	 */
-	public WZL(String wzxFn, String wdBaseUrl, int autoLoadDelyInMilli, int maxLoadCountPer) {
+	public WZL(String wzxFn, String wdBaseUrl, int autoLoadDelyInMilli, int maxLoadSize) {
 		setDaemon(true);
 		setName("WZL-" + hashCode());
 		seizes = new ConcurrentLinkedDeque<>();
 		loadSemaphore = new Semaphore(0);
 		this.autoLoadDelyInMilli = autoLoadDelyInMilli;
-		this.maxLoadCountPer = maxLoadCountPer;
+		this.maxLoadSizePer = maxLoadSize;
 
 		if (!wdBaseUrl.endsWith("/")) wdBaseUrl += "/";
 		fno = SDK.changeFileExtension(new File(wzxFn).getName(), "");
@@ -182,8 +182,7 @@ public final class WZL extends Thread {
 			e.printStackTrace();
 		}
 
-		// 每次最多处理1M数据
-		var buffer = new byte[1024 * 1024];
+		var buffer = new byte[maxLoadSizePer];
 		while (!cancel) {
 			// 是否已完成所有纹理加载
 			var loadedCompleted = true;
@@ -325,8 +324,6 @@ public final class WZL extends Thread {
 			e.printStackTrace();
 		}
 
-		// 每次最多处理1M数据
-		var sliceLen = 1024 * 1024;
 		while (!cancel) {
 			// 是否已完成所有纹理加载
 			var loadedCompleted = true;
@@ -381,7 +378,7 @@ public final class WZL extends Thread {
 			}
 
 			var startOffset = offsetList[startNo];
-			var rangeEnd = Math.min(startOffset + sliceLen, fLen - 1);
+			var rangeEnd = Math.min(startOffset + maxLoadSizePer, fLen - 1);
 			try {
 				var url = new URL(wzlUrl);
 				var conn = (HttpURLConnection) url.openConnection();
@@ -421,7 +418,6 @@ public final class WZL extends Thread {
 	}
 
 	private void unpackTextures(ByteBuffer byteBuffer, int startNo, long fLen) throws IOException {
-		var loadCount = 0;
 		for (var no = startNo; no < imageCount; ++no) {
 			if (cancel) break;
 			if (offsetList[no] == 0) {
@@ -502,7 +498,6 @@ public final class WZL extends Thread {
 			loadedFlag[no] = true;
 			if (textureConsumer != null) {
 				textureConsumer.recv(fno, no, new Texture(false, width, height, offsetX, offsetY, sRGBA));
-				if (++loadCount >= maxLoadCountPer) break;
 			}
 		}
 	}
