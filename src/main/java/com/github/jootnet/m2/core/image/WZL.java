@@ -215,6 +215,7 @@ public final class WZL extends Thread {
 					if (loadSemaphore.tryAcquire(autoLoadDelyInMilli, TimeUnit.MILLISECONDS)) {
 						if (cancel) return;
 						seize = seizes.poll();
+						loadSemaphore.drainPermits();
 					}
 				} catch (InterruptedException e) {
 					e.printStackTrace();
@@ -358,6 +359,7 @@ public final class WZL extends Thread {
 					if (loadSemaphore.tryAcquire(autoLoadDelyInMilli, TimeUnit.MILLISECONDS)) {
 						if (cancel) return;
 						seize = seizes.poll();
+						loadSemaphore.drainPermits();
 					}
 				} catch (InterruptedException e) {
 					e.printStackTrace();
