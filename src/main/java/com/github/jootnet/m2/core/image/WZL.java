@@ -142,6 +142,7 @@ public final class WZL extends Thread {
 		for (var i : seizes) {
 			this.seizes.offer(i);
 		}
+		loadSemaphore.release();
 		if (!started) {
 			start(); // 启动后台线程进行顺序加载
 			started = true;
@@ -207,9 +208,7 @@ public final class WZL extends Thread {
 			var startNo = 0;
 			// 支持抢占式优先级
 			var seize = seizes.poll();
-			if (seize != null && !loadedFlag[seize]) {
-				startNo = seize;
-			} else {
+			if (seize == null || loadedFlag[seize]) {
 				try {
 					if (loadSemaphore.tryAcquire(autoLoadDelyInMilli, TimeUnit.MILLISECONDS)) {
 						if (cancel) return;
@@ -218,6 +217,12 @@ public final class WZL extends Thread {
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
+			} else {
+				loadSemaphore.drainPermits();
+			}
+			if (seize != null && !loadedFlag[seize]) {
+				startNo = seize;
+			} else {
 				for (var i = 0; i < imageCount; ++i) {
 					if (!loadedFlag[i]) {
 						startNo = i;
@@ -348,9 +353,7 @@ public final class WZL extends Thread {
 			var startNo = 0;
 			// 支持抢占式优先级
 			var seize = seizes.poll();
-			if (seize != null && !loadedFlag[seize]) {
-				startNo = seize;
-			} else {
+			if (seize == null || loadedFlag[seize]) {
 				try {
 					if (loadSemaphore.tryAcquire(autoLoadDelyInMilli, TimeUnit.MILLISECONDS)) {
 						if (cancel) return;
@@ -359,6 +362,12 @@ public final class WZL extends Thread {
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
+			} else {
+				loadSemaphore.drainPermits();
+			}
+			if (seize != null && !loadedFlag[seize]) {
+				startNo = seize;
+			} else {
 				for (var i = 0; i < imageCount; ++i) {
 					if (!loadedFlag[i]) {
 						startNo = i;
