@@ -168,6 +168,7 @@ public final class WZL extends Thread {
 			loadedFlag = new boolean[imageCount];
 			for (var i = 0; i < imageCount; ++i) {
 				offsetList[i] = buffer.getInt();// UnsignedInt
+				if (offsetList[i] < 64) offsetList[i] = 0;
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -286,6 +287,7 @@ public final class WZL extends Thread {
 				loadedFlag = new boolean[imageCount];
 				for (var i = 0; i < imageCount; ++i) {
 					offsetList[i] = byteBuffer.getInt();// UnsignedInt
+					if (offsetList[i] < 64) offsetList[i] = 0;
 				}
 	
 				conn.disconnect();
