@@ -63,9 +63,9 @@ public final class WZL extends Thread {
 	/** 加载信号量 */
 	private Semaphore loadSemaphore;
 	/** 自动加载间隔 */
-	private int autoLoadDelyInMilli;
+	private int autoLoadDelyInMilli = 60 * 1000; // 默认一分钟
 	/** 单次加载最大数据量（从磁盘或网络下载） */
-	private int maxLoadSizePer;
+	private int maxLoadSizePer = 1024 * 1024; // 默认1M。因为有些单张图片甚至超过500K，虽然有更优秀的代码（比如每次重新计算下载量），但暂时先这样写吧
 
 	/**
 	 * 使用wzx文件路径和微端基址初始化WZL对象 <br>
@@ -73,16 +73,12 @@ public final class WZL extends Thread {
 	 * 
 	 * @param wzxFn     wzx文件路径
 	 * @param wdBaseUrl 微端基址
-	 * @param autoLoadDelyInMilli 后台自动加载每maxLoadSize字节数据后停顿时长（毫秒记）
-	 * @param maxLoadSize 每次加载最大字节数<br>自动加载或手动加载时都是先读取这么多个字节，然后处理
 	 */
-	public WZL(String wzxFn, String wdBaseUrl, int autoLoadDelyInMilli, int maxLoadSize) {
+	public WZL(String wzxFn, String wdBaseUrl) {
 		setDaemon(true);
 		setName("WZL-" + hashCode());
 		seizes = new ConcurrentLinkedDeque<>();
 		loadSemaphore = new Semaphore(0);
-		this.autoLoadDelyInMilli = autoLoadDelyInMilli;
-		this.maxLoadSizePer = maxLoadSize;
 
 		if (!wdBaseUrl.endsWith("/")) wdBaseUrl += "/";
 		fno = SDK.changeFileExtension(new File(wzxFn).getName(), "");
@@ -166,7 +162,7 @@ public final class WZL extends Thread {
 			var buffer = ByteBuffer.wrap(Files.readAllBytes(Paths.get(wzxFn))).order(ByteOrder.LITTLE_ENDIAN);
 			buffer.position(44);
 			imageCount = buffer.getInt();
-			offsetList = new int[imageCount];
+			offsetList = new int[imageCount + 1];
 			loadedFlag = new boolean[imageCount];
 			for (var i = 0; i < imageCount; ++i) {
 				offsetList[i] = buffer.getInt();// UnsignedInt
@@ -181,11 +177,14 @@ public final class WZL extends Thread {
 		try {
 			raf = new RandomAccessFile(wzlFn, "r");
 			fLen = raf.length();
+			offsetList[imageCount] = (int) (fLen - 1);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 
-		var buffer = new byte[maxLoadSizePer];
+		var buffer = (ByteBuffer) null;
+		var bufferOffset = -1;
+		var bytesBuffer = new byte[maxLoadSizePer];
 		while (!cancel) {
 			// 是否已完成所有纹理加载
 			var loadedCompleted = true;
@@ -239,13 +238,36 @@ public final class WZL extends Thread {
 				continue;
 			}
 
+			var startOffset = offsetList[startNo];
+			if (buffer != null) { // 本地文件使用缓存命中方式加速，每次读取一张纹理
+				buffer.position(0);
+				var texDataLen = 0;
+				for (var i = startNo + 1; i < imageCount + 1; ++i) {
+					if (offsetList[i] != 0) {
+						texDataLen = offsetList[i] - offsetList[startNo];
+						break;
+					}
+				}
+				if (texDataLen == 0 || bufferOffset > startOffset || bufferOffset + buffer.remaining() < startOffset + texDataLen) {
+					buffer = null;
+				}
+				if (buffer != null) {
+					buffer.position(startOffset - bufferOffset);
+					try {
+						unpackTextures(buffer, startNo);
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+					continue;
+				}
+			}
 			try {
-				var startOffset = offsetList[startNo];
 				raf.seek(startOffset);
-				var readLen = raf.read(buffer);
-				var byteBuffer = ByteBuffer.wrap(buffer, 0, readLen).order(ByteOrder.LITTLE_ENDIAN);
+				bufferOffset = startOffset;
+				var readLen = raf.read(bytesBuffer);
+				buffer = ByteBuffer.wrap(bytesBuffer, 0, readLen).order(ByteOrder.LITTLE_ENDIAN);
 
-				unpackTextures(byteBuffer, startNo, fLen);
+				unpackTextures(buffer, startNo);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -286,7 +308,7 @@ public final class WZL extends Thread {
 				}
 				byteBuffer.position(44);
 				imageCount = byteBuffer.getInt();
-				offsetList = new int[imageCount];
+				offsetList = new int[imageCount + 1];
 				loadedFlag = new boolean[imageCount];
 				for (var i = 0; i < imageCount; ++i) {
 					offsetList[i] = byteBuffer.getInt();// UnsignedInt
@@ -309,6 +331,7 @@ public final class WZL extends Thread {
 			conn.setRequestMethod("HEAD");
 			conn.connect();
 			fLen = conn.getContentLength(); // 如果是nginx可能没有这个属性，需要设置！
+			offsetList[imageCount] = (int) (fLen - 1);
 			conn.disconnect();
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -384,7 +407,7 @@ public final class WZL extends Thread {
 			}
 
 			var startOffset = offsetList[startNo];
-			var rangeEnd = Math.min(startOffset + maxLoadSizePer, fLen - 1);
+			var rangeEnd = Math.min(startOffset + maxLoadSizePer, fLen - 1); // 微端模式下，每次下载的数据马上解析并存储到显存，同时写入临时文件，这样给用户的体验上看显示要慢一些
 			try {
 				var url = new URL(wzlUrl);
 				var conn = (HttpURLConnection) url.openConnection();
@@ -399,7 +422,7 @@ public final class WZL extends Thread {
 					conn.disconnect();
 					continue;
 				}
-				var byteBuffer = (ByteBuffer) null;
+				var buffer = (ByteBuffer) null;
 				try (var bos = new ByteArrayOutputStream()) {
 					try (var is = conn.getInputStream()) {
 						var readLen = 0;
@@ -412,18 +435,18 @@ public final class WZL extends Thread {
 					var dData = bos.toByteArray();
 					raf.seek(startOffset);
 					raf.write(dData);
-					byteBuffer = ByteBuffer.wrap(dData).order(ByteOrder.LITTLE_ENDIAN);
+					buffer = ByteBuffer.wrap(dData).order(ByteOrder.LITTLE_ENDIAN);
 				}
 				conn.disconnect();
 				
-				unpackTextures(byteBuffer, startNo, fLen);
+				unpackTextures(buffer, startNo);
 			} catch (IOException ex) {
 				ex.printStackTrace();
 			}
 		}
 	}
 
-	private void unpackTextures(ByteBuffer byteBuffer, int startNo, long fLen) throws IOException {
+	private void unpackTextures(ByteBuffer byteBuffer, int startNo) throws IOException {
 		for (var no = startNo; no < imageCount; ++no) {
 			if (cancel) break;
 			if (offsetList[no] == 0) {
