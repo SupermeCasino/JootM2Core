@@ -18,6 +18,7 @@ package com.github.jootnet.m2.core.map;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.ByteBuffer;
@@ -88,7 +89,10 @@ public final class Maps {
 							bos.write(buf, 0, readLen);
 						}
 					}
-					var dData = SDK.unzip(bos.toByteArray());
+					var dData = bos.toByteArray();
+					try {
+						dData = SDK.unzip(dData);
+					} catch (IOException ex) {}
 					if (!Files.exists(Paths.get(mapPath).getParent())) {
 						Files.createDirectories(Paths.get(mapPath).getParent());
 					}
