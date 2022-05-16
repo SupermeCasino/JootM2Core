@@ -63,9 +63,9 @@ public final class WZL extends Thread {
 	/** 加载信号量 */
 	private Semaphore loadSemaphore;
 	/** 自动加载间隔 */
-	private int autoLoadDelyInMilli = 60 * 1000; // 默认一分钟
+	private int autoLoadDelyInMilli = 5 * 1000; // 默认5秒
 	/** 单次加载最大数据量（从磁盘或网络下载） */
-	private int maxLoadSizePer = 1024 * 1024; // 默认1M。因为有些单张图片甚至超过500K，虽然有更优秀的代码（比如每次重新计算下载量），但暂时先这样写吧
+	private int maxLoadSizePer = 256 * 1024; // 默认256K
 
 	/**
 	 * 使用wzx文件路径和微端基址初始化WZL对象 <br>
@@ -239,15 +239,15 @@ public final class WZL extends Thread {
 			}
 
 			var startOffset = offsetList[startNo];
+			var texDataLen = 0;
+			for (var i = startNo + 1; i < imageCount + 1; ++i) {
+				if (offsetList[i] != 0) {
+					texDataLen = offsetList[i] - offsetList[startNo];
+					break;
+				}
+			}
 			if (buffer != null) { // 本地文件使用缓存命中方式加速，每次读取一张纹理
 				buffer.position(0);
-				var texDataLen = 0;
-				for (var i = startNo + 1; i < imageCount + 1; ++i) {
-					if (offsetList[i] != 0) {
-						texDataLen = offsetList[i] - offsetList[startNo];
-						break;
-					}
-				}
 				if (texDataLen == 0 || bufferOffset > startOffset || bufferOffset + buffer.remaining() < startOffset + texDataLen) {
 					buffer = null;
 				}
@@ -264,8 +264,12 @@ public final class WZL extends Thread {
 			try {
 				raf.seek(startOffset);
 				bufferOffset = startOffset;
-				var readLen = raf.read(bytesBuffer);
-				buffer = ByteBuffer.wrap(bytesBuffer, 0, readLen).order(ByteOrder.LITTLE_ENDIAN);
+				var realBytesBuffer = bytesBuffer;
+				if (texDataLen > bytesBuffer.length) {
+					realBytesBuffer = new byte[texDataLen];
+				}
+				var readLen = raf.read(realBytesBuffer);
+				buffer = ByteBuffer.wrap(realBytesBuffer, 0, readLen).order(ByteOrder.LITTLE_ENDIAN);
 
 				unpackTextures(buffer, startNo);
 			} catch (IOException e) {
@@ -299,7 +303,10 @@ public final class WZL extends Thread {
 							bos.write(buf, 0, readLen);
 						}
 					}
-					var dData = SDK.unzip(bos.toByteArray());
+					var dData = bos.toByteArray();
+					try {
+						dData = SDK.unzip(dData);
+					} catch (IOException ex) {}
 					if (!Files.exists(Paths.get(wzxFn).getParent())) {
 						Files.createDirectories(Paths.get(wzxFn).getParent());
 					}
@@ -407,7 +414,14 @@ public final class WZL extends Thread {
 			}
 
 			var startOffset = offsetList[startNo];
-			var rangeEnd = Math.min(startOffset + maxLoadSizePer, fLen - 1); // 微端模式下，每次下载的数据马上解析并存储到显存，同时写入临时文件，这样给用户的体验上看显示要慢一些
+			var texDataLen = 0;
+			for (var i = startNo + 1; i < imageCount + 1; ++i) {
+				if (offsetList[i] != 0) {
+					texDataLen = offsetList[i] - offsetList[startNo];
+					break;
+				}
+			}
+			var rangeEnd = Math.min(startOffset + Math.max(maxLoadSizePer, texDataLen), fLen - 1); // 微端模式下，每次下载的数据马上解析并存储到显存，同时写入临时文件，这样给用户的体验上看显示要慢一些
 			try {
 				var url = new URL(wzlUrl);
 				var conn = (HttpURLConnection) url.openConnection();
