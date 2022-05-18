@@ -18,8 +18,16 @@ public class OutResp extends Message {
 		deSerializers.put(MessageType.OUT_RESP, buffer -> {
 			var code = buffer.getInt();
 			var serverTip = unpackString(buffer);
-			var chrName = unpackString(buffer);
-			return new OutResp(code, serverTip, chrName);
+			var role = new LoginResp.Role();
+			role = new LoginResp.Role();
+			role.type = buffer.getInt();
+			role.gender = buffer.get();
+			role.level = buffer.getInt();
+			role.name = unpackString(buffer);
+			role.mapNo = unpackString(buffer);
+			role.x = buffer.getShort();
+			role.y = buffer.getShort();
+			return new OutResp(code, serverTip, role);
 		});
 	}
 	
@@ -34,14 +42,14 @@ public class OutResp extends Message {
 	 */
 	public String serverTip;
 	/**
-	 * 角色昵称
+	 * 角色最新状态
 	 */
-	public String chrName;
+	public LoginResp.Role role;
 
-	public OutResp(int code, String serverTip, String chrName) {
+	public OutResp(int code, String serverTip, LoginResp.Role role) {
 		this.code = code;
 		this.serverTip = serverTip;
-		this.chrName = chrName;
+		this.role = role;
 	}
 
 	@Override
@@ -53,7 +61,13 @@ public class OutResp extends Message {
 	protected void packCore(DataOutput buffer) throws IOException {
 		buffer.writeInt(code);
 		packString(serverTip, buffer);
-		packString(chrName, buffer);
+		buffer.writeInt(role.type);
+		buffer.writeByte(role.gender);
+		buffer.writeInt(role.level);
+		packString(role.name, buffer);
+		packString(role.mapNo, buffer);
+		buffer.writeShort(role.x);
+		buffer.writeShort(role.y);
 	}
 
 }
