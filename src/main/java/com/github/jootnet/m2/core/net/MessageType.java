@@ -36,6 +36,10 @@ public enum MessageType {
 	OUT_RESP(1012),
 	/** 被踢出登录 */
 	KICKED_OUT(1013),
+	/** 退出登录 */
+	LOGOUT_REQ(1014),
+	/** 退出登录结果 */
+	LOGOUT_RESP(1015),
 	;
 
     private int id_;
