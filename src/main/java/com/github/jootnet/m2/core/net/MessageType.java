@@ -29,7 +29,14 @@ public enum MessageType {
 	NEW_USER_RESP(1008),
 	/** 新角色 */
 	NEW_CHR_REQ(1009),
-	NEW_CHR_RESP(1010);
+	NEW_CHR_RESP(1010),
+	/** 离开游戏世界 */
+	OUT_REQ(1011),
+	/** 离开游戏世界结果 */
+	OUT_RESP(1012),
+	/** 被踢出登录 */
+	KICKED_OUT(1013),
+	;
 
     private int id_;
     private MessageType(int id) {

@@ -6,6 +6,12 @@ import java.io.IOException;
 import com.github.jootnet.m2.core.net.Message;
 import com.github.jootnet.m2.core.net.MessageType;
 
+/**
+ * 服务器基础信息
+ * 
+ * @author LinXing
+ *
+ */
 public final class SysInfo extends Message {
 	
 	static {
