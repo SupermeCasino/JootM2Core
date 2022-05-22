@@ -38,14 +38,14 @@ public final class Map {
 	/** 地图块数据 */
 	private MapTileInfo[][] tiles;
 	
-	Map() { }
+	public Map() { }
 	
 	/** 获取地图宽度 */
 	public short getWidth() {
 		return width;
 	}
 	/** 设置地图宽度 */
-	void setWidth(short width) {
+	public void setWidth(short width) {
 		this.width = width;
 	}
 	/** 获取地图高度 */
@@ -53,7 +53,7 @@ public final class Map {
 		return height;
 	}
 	/** 设置地图高度 */
-	void setHeight(short height) {
+	public void setHeight(short height) {
 		this.height = height;
 	}
 	/** 获取地图块信息 */
@@ -61,7 +61,7 @@ public final class Map {
 		return tiles;
 	}
 	/** 设置地图块信息 */
-	void setMapTiles(MapTileInfo[][] mapTiles) {
+	public void setMapTiles(MapTileInfo[][] mapTiles) {
 		this.tiles = mapTiles;
 	}
 }

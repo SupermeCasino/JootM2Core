@@ -64,14 +64,14 @@ public final class MapTileInfo {
 	/** 光线 */
 	private byte light;
 	
-	MapTileInfo() { }
+	public MapTileInfo() { }
 
 	/** 获取背景图索引 */
 	public short getBngImgIdx() {
 		return bngImgIdx;
 	}
 	/** 设置背景图索引 */
-	void setBngImgIdx(short bngImgIdx) {
+	public void setBngImgIdx(short bngImgIdx) {
 		this.bngImgIdx = bngImgIdx;
 	}
 	/** 获取该地图块是否有背景图 */
@@ -79,7 +79,7 @@ public final class MapTileInfo {
 		return hasBng;
 	}
 	/** 设置该地图块是否有背景图 */
-	void setHasBng(boolean hasBng) {
+	public void setHasBng(boolean hasBng) {
 		this.hasBng = hasBng;
 	}
 	/** 获取该地图块是否可以站立或走过 */
@@ -87,7 +87,7 @@ public final class MapTileInfo {
 		return canWalk;
 	}
 	/** 设置该地图块是否可以站立或走过 */
-	void setCanWalk(boolean canWalk) {
+	public void setCanWalk(boolean canWalk) {
 		this.canWalk = canWalk;
 	}
 	/** 获取补充图索引 */
@@ -95,7 +95,7 @@ public final class MapTileInfo {
 		return midImgIdx;
 	}
 	/** 设置补充图索引 */
-	void setMidImgIdx(short midImgIdx) {
+	public void setMidImgIdx(short midImgIdx) {
 		this.midImgIdx = midImgIdx;
 	}
 	/** 获取该地图块是否有补充图 */
@@ -103,7 +103,7 @@ public final class MapTileInfo {
 		return hasMid;
 	}
 	/** 设置该地图块是否有补充图 */
-	void setHasMid(boolean hasMid) {
+	public void setHasMid(boolean hasMid) {
 		this.hasMid = hasMid;
 	}
 	/** 获取对象图索引 */
@@ -111,7 +111,7 @@ public final class MapTileInfo {
 		return objImgIdx;
 	}
 	/** 设置对象图索引 */
-	void setObjImgIdx(short objImgIdx) {
+	public void setObjImgIdx(short objImgIdx) {
 		this.objImgIdx = objImgIdx;
 	}
 	/** 获取该地图块是否有对象图 */
@@ -119,7 +119,7 @@ public final class MapTileInfo {
 		return hasObj;
 	}
 	/** 设置该地图块是否有对象图 */
-	void setHasObj(boolean hasObj) {
+	public void setHasObj(boolean hasObj) {
 		this.hasObj = hasObj;
 	}
 	/** 获取该地图块是否可以飞越 */
@@ -127,7 +127,7 @@ public final class MapTileInfo {
 		return canFly;
 	}
 	/** 设置该地图块是否可以飞越 */
-	void setCanFly(boolean canFly) {
+	public void setCanFly(boolean canFly) {
 		this.canFly = canFly;
 	}
 	/** 获取门索引 */
@@ -135,7 +135,7 @@ public final class MapTileInfo {
 		return doorIdx;
 	}
 	/** 设置门索引 */
-	void setDoorIdx(byte doorIdx) {
+	public void setDoorIdx(byte doorIdx) {
 		this.doorIdx = doorIdx;
 	}
 	/** 获取该地图块是否有门 */
@@ -143,7 +143,7 @@ public final class MapTileInfo {
 		return hasDoor;
 	}
 	/** 设置该地图块是否有门 */
-	void setHasDoor(boolean hasDoor) {
+	public void setHasDoor(boolean hasDoor) {
 		this.hasDoor = hasDoor;
 	}
 	/** 获取门偏移 */
@@ -151,7 +151,7 @@ public final class MapTileInfo {
 		return doorOffset;
 	}
 	/** 设置门偏移 */
-	void setDoorOffset(short doorOffset) {
+	public void setDoorOffset(short doorOffset) {
 		this.doorOffset = doorOffset;
 	}
 	/** 获取该地图块门是否可打开 */
@@ -159,7 +159,7 @@ public final class MapTileInfo {
 		return doorCanOpen;
 	}
 	/** 设置该地图块门是否可打开 */
-	void setDoorCanOpen(boolean doorCanOpen) {
+	public void setDoorCanOpen(boolean doorCanOpen) {
 		this.doorCanOpen = doorCanOpen;
 	}
 	/** 获取动画帧数 */
@@ -167,7 +167,7 @@ public final class MapTileInfo {
 		return aniFrame;
 	}
 	/** 设置动画帧数 */
-	void setAniFrame(byte aniFrame) {
+	public void setAniFrame(byte aniFrame) {
 		this.aniFrame = aniFrame;
 	}
 	/**
@@ -177,7 +177,7 @@ public final class MapTileInfo {
 		return aniBlendMode;
 	}
 	/** 设置动画绘制模式<br>动画像素叠加是否需要混合 */
-	void setAniBlendMode(boolean aniBlendMode) {
+	public void setAniBlendMode(boolean aniBlendMode) {
 		this.aniBlendMode = aniBlendMode;
 	}
 	/** 获取该地图块是否有动画 */
@@ -185,7 +185,7 @@ public final class MapTileInfo {
 		return hasAni;
 	}
 	/** 设置该地图块是否有动画 */
-	void setHasAni(boolean hasAni) {
+	public void setHasAni(boolean hasAni) {
 		this.hasAni = hasAni;
 	}
 	/** 获取动画跳帧数 */
@@ -193,7 +193,7 @@ public final class MapTileInfo {
 		return aniTick;
 	}
 	/** 设置动画跳帧数 */
-	void setAniTick(byte aniTick) {
+	public void setAniTick(byte aniTick) {
 		this.aniTick = aniTick;
 	}
 	/** 获取资源文件索引 */
@@ -201,7 +201,7 @@ public final class MapTileInfo {
 		return objFileIdx;
 	}
 	/** 设置资源文件索引 */
-	void setObjFileIdx(byte objFileIdx) {
+	public void setObjFileIdx(byte objFileIdx) {
 		this.objFileIdx = objFileIdx;
 	}
 	/** 获取背景图资源文件索引 */
@@ -225,7 +225,7 @@ public final class MapTileInfo {
 		return light;
 	}
 	/** 设置亮度 */
-	void setLight(byte light) {
+	public void setLight(byte light) {
 		this.light = light;
 	}
 }

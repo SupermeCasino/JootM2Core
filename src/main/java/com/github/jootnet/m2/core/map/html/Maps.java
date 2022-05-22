@@ -14,19 +14,18 @@
  * 
  * Support: https://github.com/jootnet/mir2.core
  */
-package com.github.jootnet.m2.core.map;
+package com.github.jootnet.m2.core.map.html;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 
 import com.github.jootnet.m2.core.SDK;
+import com.github.jootnet.m2.core.map.Map;
+import com.github.jootnet.m2.core.map.MapTileInfo;
 
 /**
  * 地图管理类<br>
@@ -52,54 +51,46 @@ public final class Maps {
 
 	/**
 	 * 获取一个地图对象
-	 *
-	 * @param mapPath 地图文件全路径
+	 * 
+	 * @param mapNo   地图编号
 	 * @param wdBaseUrl 微端基址
 	 * @return 解析出来的地图对象
 	 */
-	public static final Map get(String mapPath, String wdBaseUrl) {
+	public static final Map get(String mapNo, String wdBaseUrl) {
 		try {
 			var buffer = (ByteBuffer)null;
-			if (Files.exists(Paths.get(SDK.repairFileName(mapPath)))) {
-				buffer = ByteBuffer.wrap(Files.readAllBytes(Paths.get(SDK.repairFileName(mapPath)))).order(ByteOrder.LITTLE_ENDIAN);
-			} else {
-				if (!wdBaseUrl.endsWith("/")) wdBaseUrl += "/";
-				var mapUrl = wdBaseUrl + "map/"
-						+ new File(mapPath).getName().toLowerCase();
-				var url = new URL(mapUrl);
-				var conn = (HttpURLConnection) url.openConnection();
-				conn.setConnectTimeout(1000);
-				conn.setReadTimeout(3000);
-				conn.setRequestMethod("GET");
-				conn.connect();
-	
-				var respCode = conn.getResponseCode();
-				if (respCode < 200 || respCode >= 300) {
-					conn.disconnect();
-					return null;
-				}
-				try (var bos = new ByteArrayOutputStream()) {
-					try (var is = conn.getInputStream()) {
-						var readLen = 0;
-						var buf = new byte[4096];
-	
-						while ((readLen = is.read(buf)) > 0) {
-							bos.write(buf, 0, readLen);
-						}
-					}
-					var dData = bos.toByteArray();
-					try {
-						dData = SDK.unzip(dData);
-					} catch (IOException ex) {}
-					if (!Files.exists(Paths.get(mapPath).getParent())) {
-						Files.createDirectories(Paths.get(mapPath).getParent());
-					}
-					Files.write(Paths.get(mapPath), dData);
-					buffer = ByteBuffer.wrap(dData).order(ByteOrder.LITTLE_ENDIAN);
-				}
-	
+			if (!wdBaseUrl.endsWith("/")) wdBaseUrl += "/";
+			var mapUrl = wdBaseUrl + "map/"
+					+ mapNo.toLowerCase() + ".map";
+			var url = new URL(mapUrl);
+			var conn = (HttpURLConnection) url.openConnection();
+			conn.setConnectTimeout(1000);
+			conn.setReadTimeout(3000);
+			conn.setRequestMethod("GET");
+			conn.connect();
+
+			var respCode = conn.getResponseCode();
+			if (respCode < 200 || respCode >= 300) {
 				conn.disconnect();
+				return null;
 			}
+			try (var bos = new ByteArrayOutputStream()) {
+				try (var is = conn.getInputStream()) {
+					var readLen = 0;
+					var buf = new byte[4096];
+
+					while ((readLen = is.read(buf)) > 0) {
+						bos.write(buf, 0, readLen);
+					}
+				}
+				var dData = bos.toByteArray();
+				try {
+					dData = SDK.unzip(dData);
+				} catch (IOException ex) {}
+				buffer = ByteBuffer.wrap(dData).order(ByteOrder.LITTLE_ENDIAN);
+			}
+
+			conn.disconnect();
 			Map ret = new Map();
 			ret.setWidth(buffer.getShort());
 			ret.setHeight(buffer.getShort());
@@ -176,7 +167,7 @@ public final class Maps {
 							mi.setMidFileIdx((byte) (mi.getMidFileIdx() + 1));
 					} else if (tileByteSize > 14) {
 						buffer.position(buffer.position() + tileByteSize - 14);
-						System.err.println(mapPath + " have unkwon tileByteSize " + tileByteSize);
+						System.err.println(mapNo + " have unkwon tileByteSize " + tileByteSize);
 					}
 					if (width % 2 != 0 || height % 2 != 0)
 						mi.setHasBng(false);
